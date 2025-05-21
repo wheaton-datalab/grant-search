@@ -8,21 +8,32 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 
-
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import java.io.File;
+
 
 public class Main {
     public static void main(String[] args) throws Exception {
         String url = "https://api.grants.gov/v1/api/search2";
 
-        // build JSON request body
-        String json = new ObjectMapper().writeValueAsString(Map.of(
-            "rows", 5,
-            "keyword", "climate",
-            "oppStatuses", "posted"
-        ));
+        // Load config.yaml into SearchConfig
+        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+        SearchConfig config = yamlMapper.readValue(new File("config.yaml"), SearchConfig.class);
+
+        // Build request payload dynamically
+        Map<String, Object> requestBody = Map.of(
+            "keyword", config.keyword,
+            "oppStatuses", config.oppStatuses,
+            "agencies", String.join("|", config.agencies),
+            "fundingCategories", String.join("|", config.fundingCategories),
+            "rows", config.rows
+        );
+
+String json = new ObjectMapper().writeValueAsString(requestBody);
+
 
         // create HTTP client
         try (CloseableHttpClient client = HttpClients.createDefault()) {
@@ -41,9 +52,13 @@ public class Main {
 
                 // display opportunities
                 System.out.println("\nTop Grant Opportunities:");
-                for (Grant g : root.data.oppHits) {
+                for (Grant g : root.data.oppHits) 
                     System.out.println(g);
-                }
+                
+                CsvExporter.export(root.data.oppHits, "grants.csv");
+                System.out.println("\nSaved to grants.csv");
+
+
             }
         }
     }
