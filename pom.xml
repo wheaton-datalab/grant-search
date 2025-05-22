@@ -50,6 +50,13 @@
       <version>2.4</version>
    </dependency>
 
+<!--Spring boot (expose REST endpoint)-->
+   <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <version>3.4.6</version>
+   </dependency>
+
   </dependencies>
 
   <build>
@@ -63,6 +70,13 @@
           <mainClass>org.grants.harvester.Main</mainClass>
         </configuration>
       </plugin>
+
+    <!--Spring Boot-->
+    <plugin>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-maven-plugin</artifactId>
+    </plugin>
+
     </plugins>
   </build>
 </project>
