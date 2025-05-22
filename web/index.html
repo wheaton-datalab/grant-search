@@ -1,11 +1,36 @@
 <!DOCTYPE html>
 <html>
 <body>
-<head> <link rel="stylesheet" href="style.css"> </head>
+<head> 
+    <title>Grant Search</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
 
     <h2>Grant Search </h2>
-    <p>Searchs multiple grant databases at once, and put them into a .csv file</p>
+    <p>Searchs multiple grant databases at once, and puts the results into a .csv file</p>
 
-    <button>Find me grants!</button>
+    <form action="/test.php" method="get">
+        <label for="keyword">Keyword:</label>
+        <input type="text" id="keywordForm" name="keyword" required><br><br>
+        <label for="oppStatuses">Status:</label>
+        <input type="text" id="oppStatusesForm" name="v" placeholder="e.g. posted" required><br><br>
+        <label for="agencies">Agencies:</label>
+        <input type="text" id="agencies" name="agencies" required><br><br>
+        <label for="fundingCategories">Funding Categories:</label>
+        <input type="text" id="fundingCategoriesForm" name="fundingCategories" required><br><br>
+        <label for="rows">Number of results:</label>
+        <input type="number" id="rowsForm" name="rows" value="20" required><br><br>
+
+        <label for="test">DELETE:</label>
+        <select name="cars" id = "cars">
+          <option value="volvo">Volvo</option>
+          <option value="toyota">Toyota</option>
+        </select>
+        
+        <br><br>
+
+        <input type="submit" id="buttonForm" name="button" value="Find me funding!"><br><br>
+    </form>
+
 </body>
 </html>
