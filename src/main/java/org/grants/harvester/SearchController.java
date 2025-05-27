@@ -9,10 +9,7 @@ public class SearchController {
     
     @PostMapping("/search")
     public List<Grant> search(@RequestBody SearchConfig config) throws Exception{
-        return null;
-        //return GrantSearcher.run(config);
+        return GrantSearcher.run(config);
     }
-
-
 
 }
