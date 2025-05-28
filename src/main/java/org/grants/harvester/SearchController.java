@@ -3,8 +3,8 @@ package org.grants.harvester;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @RestController
-@CrossOrigin
 public class SearchController {
     
     @PostMapping("/search")

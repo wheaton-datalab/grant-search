@@ -6,23 +6,39 @@ window.onload = function () {
 
     const data = {
       keyword: document.getElementById("keyword").value,
-      oppStatuses: document.getElementById("oppStatuses").value,
-      agencies: document.getElementById("agencies").value.split(","),
-      fundingCategories: document.getElementById("fundingCategories").value.split(","),
+      oppStatuses: document.getElementById("oppStatuses").value
+        .split(",")
+        .map(s => s.trim())
+        .filter(s => s !== ""),
+      agencies: document.getElementById("agencies").value
+        .split(",")
+        .map(s => s.trim())
+        .filter(s => s !== ""),
+      fundingCategories: document.getElementById("fundingCategories").value
+        .split(",")
+        .map(s => s.trim())
+        .filter(s => s !== ""),
       rows: parseInt(document.getElementById("rows").value)
     };
 
-    console.log("Sending search request with:", data);
+    //console.log("Sending search request with:", data);
 
-    const res = await fetch("http://localhost:8080/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
+    try {
+      const res = await fetch("http://localhost:8080/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
 
-    const results = await res.json();
-    console.log("Grants found:", results);
+      if (!res.ok) {
+        throw new Error(`Server responded with status ${res.status}`);
+      }
 
-    // Optional: render to a table or div
+      const results = await res.json();
+      //console.log("Received search results:", results);
+
+    } catch (error) {
+      console.error("Search request failed:", error);
+    }
   });
 };
