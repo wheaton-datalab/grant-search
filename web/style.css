@@ -7,7 +7,12 @@ h1{
     font-size: 300%;
     text-align: center;
 }
-p{
+h2{
+    color:whitesmoke;
+    font-family: system-ui, sans-serif;
+    font-size: 200%;
+}
+p1{
     color: whitesmoke;
     font-family: system-ui, sans-serif;
     font-size: 160%;
@@ -59,4 +64,25 @@ input[type="submit"]{
     cursor: pointer;
     /*align-self: center;*/
     text-align: center;
+}
+button {
+    background-color: black;
+    color:whitesmoke;
+    font-family: inherit;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6em 1.2em;
+    font-size: 1.1em;
+    cursor: pointer;
+    /*align-self: center;*/
+    text-align: center;
+}
+
+.result-card {
+  border: 1px solid #ccc;
+  padding: 1em;
+  margin-bottom: 1em;
+  border-radius: 8px;
+  background-color: slateblue;
+  color: black;
 }
