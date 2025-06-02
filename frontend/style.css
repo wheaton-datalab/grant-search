@@ -65,6 +65,17 @@ input[type="submit"]{
     /*align-self: center;*/
     text-align: center;
 }
+select {
+    width: 100%;
+    max-width: 350px;
+    padding: 0.5em;
+    border-radius: 4px;
+    border: 1px solid #888;
+    font-size: 1em;
+    margin-bottom: 0em;
+    box-sizing: border-box;
+    background: #f8f8ff;
+}
 button {
     background-color: black;
     color:whitesmoke;
@@ -83,6 +94,6 @@ button {
   padding: 1em;
   margin-bottom: 1em;
   border-radius: 8px;
-  background-color: slateblue;
+  background-color: whitesmoke;
   color: black;
 }

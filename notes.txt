@@ -1,27 +1,27 @@
 to do:
 
+today: disable button unless results exist
+
+
+Monday:
+switch to webserver over what i have now
+fetch api to get descriptions and other details
+
+
 ordered:
 
-export to csv, maybe onto screen as well
+
+
+
+
+X export to csv, maybe onto screen as well
 get succinct search terms
 get important output in csv
 switch to web server, off my own computer
 
 Here are a few ideas you might want to pursue next:
 
-1. Display Results on Your Webpage
-Instead of just logging console.log("Grants found:", results), update your main.js to render the list into the DOM.
 
-2. Validation & UX Improvements
-Require at least one keyword or agency
-
-Add loading spinners or disable the submit button while waiting for a response
-
-3. Export to CSV
-You already discussed OpenCSV. You could add a backend endpoint like /downloadCsv and let users download results.
-
-4. Search History
-Store previous searches and allow users to repeat them.
 
 5. Deploy It
 Once it works locally, consider deploying to a free service like:
