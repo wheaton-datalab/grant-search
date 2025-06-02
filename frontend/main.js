@@ -1,55 +1,57 @@
+const API_URL = "http://localhost:8080";  // <-- For local testing. Later, swap with your deployed URL!
+
 window.onload = function () {
 
-  //csv exporter
+  // csv exporter
   let currentResults = [];
 
   document.getElementById("export-btn").addEventListener("click", function () {
-  if (currentResults.length === 0) return;
+    if (currentResults.length === 0) return;
 
-  const csvHeader = [
-    "ID",
-    "Number",
-    "Title",
-    "Agency",
-    "Status",
-    "Open Date",
-    "Close Date",
-    "CFDA"
-  ];
+    const csvHeader = [
+      "ID",
+      "Number",
+      "Title",
+      "Agency",
+      "Status",
+      "Open Date",
+      "Close Date",
+      "CFDA"
+    ];
 
-  const csvRows = currentResults.map(grant => [
-    grant.id,
-    grant.number,
-    `"${grant.title}"`,  // quote to avoid commas in titles
-    grant.agency,
-    grant.oppStatus,
-    grant.openDate || "",
-    grant.closeDate || "",
-    grant.cfdaList?.join(";") || ""
-  ]);
+    const csvRows = currentResults.map(grant => [
+      grant.id,
+      grant.number,
+      `"${grant.title}"`,
+      grant.agency,
+      grant.oppStatus,
+      grant.openDate || "",
+      grant.closeDate || "",
+      grant.cfdaList?.join(";") || ""
+    ]);
 
-  const csvContent = [csvHeader, ...csvRows]
-    .map(row => row.join(","))
-    .join("\n");
+    const csvContent = [csvHeader, ...csvRows]
+      .map(row => row.join(","))
+      .join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
 
-  const downloadLink = document.createElement("a");
-  downloadLink.href = url;
-  const now = new Date();
-  const timestamp = now.toISOString().replace(/[:.]/g, "-"); // e.g. "2025-05-29T18-45-00-123Z"
-  downloadLink.download = `grants_${timestamp}.csv`;
-  downloadLink.click();
+    const downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[:.]/g, "-");
+    downloadLink.download = `grants_${timestamp}.csv`;
+    downloadLink.click();
 
-  URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
   });
-  //end csv
 
+  // search form handling
   const form = document.querySelector("form");
 
   form.addEventListener("submit", async function (e) {
-    e.preventDefault(); // prevent page reload
+    e.preventDefault();
 
     const data = {
       keyword: document.getElementById("keyword").value,
@@ -69,7 +71,7 @@ window.onload = function () {
     };
 
     try {
-      const res = await fetch("http://localhost:8080/search", {
+      const res = await fetch(`${API_URL}/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -84,9 +86,9 @@ window.onload = function () {
       currentResults = results;
       document.getElementById("export-btn").disabled = results.length === 0;
 
-      //results display
+      // display results
       const resultsContainer = document.getElementById("results-container");
-      resultsContainer.innerHTML = ""; // clear old results
+      resultsContainer.innerHTML = "";
 
       if (results.length === 0) {
         resultsContainer.innerHTML = "<p>No results found.</p>";
@@ -109,7 +111,6 @@ window.onload = function () {
           resultsContainer.appendChild(div);
         });
       }
-      //end results diplay
 
     } catch (error) {
       console.error("Search request failed:", error);
