@@ -1,12 +1,13 @@
 to do:
 
-today: disable button unless results exist
+java -jar target/grants-harvester-1.0-SNAPSHOT.jar
+
 
 
 Monday:
 switch to webserver over what i have now
 fetch api to get descriptions and other details
-
+disable button unless results exist
 
 ordered:
 

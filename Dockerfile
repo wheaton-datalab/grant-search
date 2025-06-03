@@ -1,5 +1,5 @@
-# Use an offcial Java 21 image
-FROM eclipse-temurin:21-jdk
+# Use official Maven with Java 21
+FROM maven:3.9.6-eclipse-temurin-21
 
 # Set working directory inside container
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Build the app with Maven (you already have pom.xml)
-RUN ./mvnw clean install || mvn clean install
+RUN mvn clean install
 
 EXPOSE 8080
 
