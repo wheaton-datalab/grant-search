@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+    <title>Grant Search</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <h1>Grant Search </h1>
+    <p1>Searchs only grants.gov (for now), and puts the results into a .csv file</p1>
+
+    <form>
+        <label for="keyword">Keyword:</label>
+        <input type="text" id="keyword" name="keyword" required>
+        
+        <!--
+        <label for="oppStatuses">Status:</label>
+        <input type="text" id="oppStatuses" name="v" placeholder="e.g. posted"> -->
+
+        <label for="oppStatuses">Status:</label>
+        <select id="oppStatuses" name="v" placeholder="e.g. posted">
+            <option value="posted,forecasted">Posted and forecasted</option>
+            <option value="posted">Posted</option>
+            <option value="forecasted">Forecasted</option>
+        </select>
+
+        <label for="agencies">Agencies:</label>
+        <input type="text" id="agencies" name="agencies">
+
+        <label for="fundingCategories">Funding Categories:</label>
+        <input type="text" id="fundingCategories" name="fundingCategories">
+
+        <label for="rows">Number of results:</label>
+        <input type="number" id="rows" name="rows" value="20" required>
+
+        <br><br>
+    
+        <input type="submit" id="buttonForm" name="button" value="Find me funding!"><br><br>
+    </form>
+`
+    <button id="export-btn" disabled>Export as CSV</button>
+
+    <h2>Search Results</h2>
+    <div id="results-container"></div>
+
+    <script src="main.js"></script>
+
+</body>
+</html>
