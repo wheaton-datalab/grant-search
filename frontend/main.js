@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8080";  // <-- For local testing. Later, swap with your deployed URL!
+const API_URL = "https://grant-search.onrender.com";
 
 window.onload = function () {
 
@@ -71,7 +71,7 @@ window.onload = function () {
     };
 
     try {
-      const res = await fetch("/search", {
+      const res = await fetch(`${API_URL}/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
