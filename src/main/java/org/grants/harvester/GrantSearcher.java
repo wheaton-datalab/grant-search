@@ -13,27 +13,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.List;
 
-/**
- * Utility class for searching grants using the Grants.gov API.
- * 
- * Contains a static method to perform a search based on the provided configuration,
- * send a POST request, parse the response, and return a list of Grant objects.
- */
 public class GrantSearcher {
 
-    /**
-     * Runs a grant search using the provided configuration.
-     *
-     * @param config The search configuration parameters
-     * @return List of Grant objects matching the search criteria
-     * @throws Exception if an error occurs during the HTTP request or parsing
-     */
+    private static final String SEARCH_API_URL = "https://api.grants.gov/v1/api/search2";
+    private static final String FETCH_API_URL = "https://api.grants.gov/v1/api/fetchOpportunity";
+
     public static List<Grant> run(SearchConfig config) throws Exception {
 
-         // Grants.gov API endpoint for searching grant opportunities
-        String url = "https://api.grants.gov/v1/api/search2";
-
-        // Build request payload dynamically from loaded config file
         Map<String, Object> requestBody = Map.of(
             "keyword", config.keyword,
             "oppStatuses", String.join("|", config.oppStatuses),
@@ -42,44 +28,96 @@ public class GrantSearcher {
             "rows", config.rows
         );
 
-        // Convert the request payload to a JSON string
-        String json = new ObjectMapper().writeValueAsString(requestBody);
-
-        // Create an HTTP client for sending the POST request
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-             //build POST request
-            HttpPost post = new HttpPost(url);
-            post.setHeader("Content-Type", "application/json");
-            post.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
 
-            // Send the POST request and receive the response
-            try (CloseableHttpResponse response = client.execute(post)) {
-                InputStream content = response.getEntity().getContent();
-                String responseBody = new String(content.readAllBytes(), StandardCharsets.UTF_8);
+            ObjectMapper mapper = new ObjectMapper();
 
-                // Parse the JSON response into a GrantsApiResponse object
-                ObjectMapper mapper = new ObjectMapper();
-                GrantsApiResponse root = mapper.readValue(responseBody, GrantsApiResponse.class);
+            HttpPost searchPost = new HttpPost(SEARCH_API_URL);
+            searchPost.setHeader("Content-Type", "application/json");
+            searchPost.setEntity(new StringEntity(mapper.writeValueAsString(requestBody), ContentType.APPLICATION_JSON));
 
-                List<Grant> results = root.data.oppHits;
+            try (CloseableHttpResponse searchResponse = client.execute(searchPost)) {
+                InputStream searchContent = searchResponse.getEntity().getContent();
+                String searchResponseBody = new String(searchContent.readAllBytes(), StandardCharsets.UTF_8);
 
-                // Print the top 5 results to the console for quick inspection
-                //WILL BE DELETED, JUST FOR TESTING
-                for (int i = 0; i < Math.min(results.size(), 5); i++) {
-                    Grant g = results.get(i);
-                    System.out.println("ID: " + g.id);
-                    System.out.println("Title: " + g.title);
-                    System.out.println("Number: " + g.number);
-                    System.out.println("Agency: " + g.agency + " (" + g.agencyCode + ")");
-                    System.out.println("Open Date: " + g.openDate);
-                    System.out.println("Close Date: " + g.closeDate);
-                    System.out.println("Status: " + g.oppStatus);
-                    System.out.println("Doc Type: " + g.docType);
-                    System.out.println("CFDA List: " + g.cfdaList);
-                    System.out.println("------------------------------------------------");
+                GrantsApiResponse root = mapper.readValue(searchResponseBody, GrantsApiResponse.class);
+
+                List<Grant> grants = root.data.oppHits;
+
+                System.out.println("Received " + grants.size() + " results");
+
+                // STEP 2: Enrich each grant
+                for (Grant grant : grants) {
+                    try {
+                        enrichGrant(grant, client, mapper);
+                    } catch (Exception e) {
+                        System.err.println("Failed to enrich grant " + grant.id + ": " + e.getMessage());
+                    }
                 }
 
-                return results;
+                return grants;
+            }
+        }
+    }
+
+    private static void enrichGrant(Grant grant, CloseableHttpClient client, ObjectMapper mapper) throws Exception {
+
+        // === DEBUG: Are we calling enrichGrant? ===
+        System.out.println("Calling fetchOpportunity for grant id=" + grant.id);
+
+        // Defensive: skip if ID is null/empty
+        if (grant.id == null || grant.id.isBlank()) {
+            System.out.println("Skipping grant with blank id");
+            return;
+        }
+
+        // Convert id to integer (could throw NumberFormatException)
+        int opportunityId;
+        try {
+            opportunityId = Integer.parseInt(grant.id);
+        } catch (NumberFormatException e) {
+            System.out.println("Skipping grant with non-numeric id=" + grant.id);
+            return;
+        }
+
+        // Build fetchOpportunity request
+        Map<String, Object> fetchRequestBody = Map.of(
+                "opportunityId", opportunityId
+        );
+
+        HttpPost fetchPost = new HttpPost(FETCH_API_URL);
+        fetchPost.setHeader("Content-Type", "application/json");
+        fetchPost.setEntity(new StringEntity(mapper.writeValueAsString(fetchRequestBody), ContentType.APPLICATION_JSON));
+
+        try (CloseableHttpResponse fetchResponse = client.execute(fetchPost)) {
+            InputStream fetchContent = fetchResponse.getEntity().getContent();
+            String fetchResponseBody = new String(fetchContent.readAllBytes(), StandardCharsets.UTF_8);
+
+            // === DEBUG: Show raw response ===
+            System.out.println("fetchOpportunity raw response for id=" + grant.id + ": " + fetchResponseBody);
+
+            // Parse response
+            Map<?, ?> fetchRoot = mapper.readValue(fetchResponseBody, Map.class);
+
+            Map<?, ?> data = (Map<?, ?>) fetchRoot.get("data");
+
+            if (data != null) {
+                Map<?, ?> synopsis = (Map<?, ?>) data.get("synopsis");
+
+                if (synopsis != null) {
+                    String description = (String) synopsis.get("synopsisDesc");
+                    grant.description = description != null ? description.trim() : "(No description)";
+                } else {
+                    grant.description = "(No synopsis)";
+                }
+
+                // Add grant URL
+                grant.url = "https://www.grants.gov/search-results-detail/" + grant.id;
+
+                // === DEBUG: Success ===
+                System.out.println("Enriched grant " + grant.id + ": URL=" + grant.url);
+            } else {
+                System.out.println("No 'data' field returned for id=" + grant.id);
             }
         }
     }

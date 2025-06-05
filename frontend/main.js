@@ -1,4 +1,10 @@
-const API_URL = "https://grant-search.onrender.com";
+// Dynamic API URL depending on environment
+const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:8080"
+    : "https://grant-search.onrender.com";
+
+console.log("Using API_URL:", API_URL);
 
 window.onload = function () {
 
@@ -16,7 +22,9 @@ window.onload = function () {
       "Status",
       "Open Date",
       "Close Date",
-      "CFDA"
+      "CFDA",
+      "Description",
+      "URL"
     ];
 
     const csvRows = currentResults.map(grant => [
@@ -27,7 +35,9 @@ window.onload = function () {
       grant.oppStatus,
       grant.openDate || "",
       grant.closeDate || "",
-      grant.cfdaList?.join(";") || ""
+      grant.cfdaList?.join(";") || "",
+      `"${grant.description || ""}"`,
+      grant.url || ""
     ]);
 
     const csvContent = [csvHeader, ...csvRows]
@@ -106,6 +116,8 @@ window.onload = function () {
             <p><strong>Open Date:</strong> ${grant.openDate || "N/A"}</p>
             <p><strong>Close Date:</strong> ${grant.closeDate || "N/A"}</p>
             <p><strong>CFDA:</strong> ${grant.cfdaList?.join(", ") || "None"}</p>
+            <p><strong>Description:</strong> ${grant.description || "(None)"}</p>
+            <p><a href="${grant.url}" target="_blank">View on Grants.gov</a></p>
           `;
 
           resultsContainer.appendChild(div);

@@ -19,8 +19,24 @@ public class Grant {
     public String docType;
     public List<String> cfdaList;
 
+    public String description;  // Will hold the synopsisDesc from fetchOpportunity
+    public String url;          // Will hold the constructed link to the official page
+
     @Override
     public String toString() {
         return number + " | " + title + " | " + agency + " | Open: " + openDate;
     }
+    /*
+     @Override
+    public String toString() {
+        return "Grant{" +
+                "id='" + id + '\'' +
+                ", number='" + number + '\'' +
+                ", title='" + title + '\'' +
+                ", agency='" + agency + '\'' +
+                ", description='" + description + '\'' +
+                ", url='" + url + '\'' +
+                '}';
+    }
+     */
 }
