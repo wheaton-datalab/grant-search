@@ -10,12 +10,8 @@
 
     <form>
         <label for="keyword">Keyword:</label>
-        <input type="text" id="keyword" name="keyword" required>
+        <input type="text" id="keyword" name="keyword" placeholder="e.g. climate, education" required>
         
-        <!--
-        <label for="oppStatuses">Status:</label>
-        <input type="text" id="oppStatuses" name="v" placeholder="e.g. posted"> -->
-
         <label for="oppStatuses">Status:</label>
         <select id="oppStatuses" name="v" placeholder="e.g. posted">
             <option value="posted,forecasted">Posted and forecasted</option>
@@ -23,14 +19,14 @@
             <option value="forecasted">Forecasted</option>
         </select>
 
-        <label for="agencies">Agencies:</label>
-        <input type="text" id="agencies" name="agencies">
+        <label for="agencies">Agencies (comma-separated agency codes, e.g. NSF, DOE):</label>
+        <input type="text" id="agencies" placeholder="NSF, DOE, NIH" />
 
-        <label for="fundingCategories">Funding Categories:</label>
-        <input type="text" id="fundingCategories" name="fundingCategories">
+        <label for="fundingCategories">Funding Categories (comma-separated codes, e.g. ED, HL):</label>
+        <input type="text" id="fundingCategories" placeholder="ED, HL, ENV" />
 
-        <label for="rows">Number of results:</label>
-        <input type="number" id="rows" name="rows" value="20" required>
+        <label for="rows">Max Results:</label>
+        <input type="number" id="rows" name="rows" value="5" required>
 
         <br><br>
     
