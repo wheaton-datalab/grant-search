@@ -30,11 +30,10 @@ window.onload = function () {
       "Close Date",
       "CFDA",
       "Description",
-      "URL"
     ];
 
     const csvRows = currentResults.map(grant => [
-      grant.id,
+      `=HYPERLINK("${grant.url}", "${grant.id}")`,  // ID column is now a link!
       grant.number,
       escapeCsvField(grant.title),
       grant.agency,
@@ -43,7 +42,6 @@ window.onload = function () {
       grant.closeDate || "",
       grant.cfdaList?.join(";") || "",
       escapeCsvField(grant.description),
-      grant.url
     ]);
 
 
