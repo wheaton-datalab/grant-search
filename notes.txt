@@ -11,23 +11,16 @@ ordered:
 
 fetch api to get descriptions and other details
 (X) export to csv, maybe onto screen as well
-() get hyperlinks in the csv
+(X) get hyperlinks in the csv
 () get succinct search terms
 () get important output in csv
 (X) switch to web server, off my own computer
-()disable button unless results exist
+() disable button unless results exist
 
 
 Here are a few ideas you might want to pursue next:
 
 
-
-5. Deploy It
-Once it works locally, consider deploying to a free service like:
-
-Frontend: GitHub Pages, Netlify
-
-Backend: Render, Railway, or a Spring Boot JAR on your own server
 
 
 

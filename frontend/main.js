@@ -33,21 +33,21 @@ window.onload = function () {
     ];
 
     const csvRows = currentResults.map(grant => [
-      `=HYPERLINK("${grant.url}", "${grant.id}")`,  // ID column is now a link!
+      `=HYPERLINK("${grant.url}", "${grant.id}")`,
       grant.number,
-      escapeCsvField(grant.title),
+      grant.title,
       grant.agency,
       grant.oppStatus,
       grant.openDate || "",
       grant.closeDate || "",
       grant.cfdaList?.join(";") || "",
-      escapeCsvField(grant.description),
-    ]);
-
+      grant.description
+    ].map(escapeCsvField));
 
     const csvContent = [csvHeader, ...csvRows]
       .map(row => row.join(","))
       .join("\n");
+
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
