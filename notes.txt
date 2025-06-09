@@ -28,8 +28,6 @@ floating:
 
 hook up another API
 
-grab description, go through opp number to access
-
 crawl wheaton webpage (crawling engine, takes the webpage extension dr. li will write)
 
 AI to get the percentage chance someone could get an opportunity (gates foundation .csv)

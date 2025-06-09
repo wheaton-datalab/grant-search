@@ -108,7 +108,11 @@ window.onload = function () {
       if (results.length === 0) {
         resultsContainer.innerHTML = "<p>No results found.</p>";
       } else {
-        results.forEach(grant => {
+       results.forEach(grant => {
+          const displayDescription = grant.description === "(No synopsis)" 
+            ? "Check webpage for details" 
+            : grant.description || "(None)";
+
           const div = document.createElement("div");
           div.className = "result-card";
 
@@ -121,7 +125,7 @@ window.onload = function () {
             <p><strong>Open Date:</strong> ${grant.openDate || "N/A"}</p>
             <p><strong>Close Date:</strong> ${grant.closeDate || "N/A"}</p>
             <p><strong>CFDA:</strong> ${grant.cfdaList?.join(", ") || "None"}</p>
-            <p><strong>Description:</strong> ${grant.description || "(None)"}</p>
+            <p><strong>Description:</strong> ${displayDescription}</p>
             <p><a href="${grant.url}" target="_blank">View on Grants.gov</a></p>
           `;
 
