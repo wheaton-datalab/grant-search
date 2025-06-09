@@ -8,8 +8,6 @@ ordered:
 
 
 
-
-fetch api to get descriptions and other details
 (X) export to csv, maybe onto screen as well
 (X) get hyperlinks in the csv
 () get succinct search terms

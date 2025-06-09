@@ -13,13 +13,26 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.List;
 
+/**
+ * Utility class for searching and enriching grant opportunities using the Grants.gov API.
+ */
 public class GrantSearcher {
 
+    // API endpoint for searching grant opportunities
     private static final String SEARCH_API_URL = "https://api.grants.gov/v1/api/search2";
+    // API endpoint for fetching detailed information about a specific opportunity
     private static final String FETCH_API_URL = "https://api.grants.gov/v1/api/fetchOpportunity";
 
+    /**
+     * Runs a grant search using the provided configuration, then enriches each result with additional details.
+     *
+     * @param config The search configuration parameters
+     * @return List of Grant objects matching the search criteria, enriched with details
+     * @throws Exception if an error occurs during the HTTP request or parsing
+     */
     public static List<Grant> run(SearchConfig config) throws Exception {
 
+        // Build the request payload for the search API from the config object
         Map<String, Object> requestBody = Map.of(
             "keyword", config.keyword,
             "oppStatuses", String.join("|", config.oppStatuses),
@@ -28,25 +41,29 @@ public class GrantSearcher {
             "rows", config.rows
         );
 
+        // Create an HTTP client for sending requests
         try (CloseableHttpClient client = HttpClients.createDefault()) {
 
             ObjectMapper mapper = new ObjectMapper();
 
+            // Prepare the POST request for the search API
             HttpPost searchPost = new HttpPost(SEARCH_API_URL);
             searchPost.setHeader("Content-Type", "application/json");
             searchPost.setEntity(new StringEntity(mapper.writeValueAsString(requestBody), ContentType.APPLICATION_JSON));
 
+            // Send the search request and process the response
             try (CloseableHttpResponse searchResponse = client.execute(searchPost)) {
                 InputStream searchContent = searchResponse.getEntity().getContent();
                 String searchResponseBody = new String(searchContent.readAllBytes(), StandardCharsets.UTF_8);
 
+                // Parse the JSON response into a GrantsApiResponse object
                 GrantsApiResponse root = mapper.readValue(searchResponseBody, GrantsApiResponse.class);
 
                 List<Grant> grants = root.data.oppHits;
 
                 System.out.println("Received " + grants.size() + " results");
 
-                // STEP 2: Enrich each grant
+                // STEP 2: Enrich each grant with additional details from the fetchOpportunity API
                 for (Grant grant : grants) {
                     try {
                         enrichGrant(grant, client, mapper);
@@ -60,6 +77,14 @@ public class GrantSearcher {
         }
     }
 
+    /**
+     * Enriches a Grant object with additional details by calling the fetchOpportunity API.
+     *
+     * @param grant  The Grant object to enrich
+     * @param client The HTTP client to use for the request
+     * @param mapper The ObjectMapper for JSON parsing
+     * @throws Exception if an error occurs during the HTTP request or parsing
+     */
     private static void enrichGrant(Grant grant, CloseableHttpClient client, ObjectMapper mapper) throws Exception {
 
         // === DEBUG: Are we calling enrichGrant? ===
@@ -80,15 +105,17 @@ public class GrantSearcher {
             return;
         }
 
-        // Build fetchOpportunity request
+        // Build fetchOpportunity request payload
         Map<String, Object> fetchRequestBody = Map.of(
                 "opportunityId", opportunityId
         );
 
+        // Prepare the POST request for the fetchOpportunity API
         HttpPost fetchPost = new HttpPost(FETCH_API_URL);
         fetchPost.setHeader("Content-Type", "application/json");
         fetchPost.setEntity(new StringEntity(mapper.writeValueAsString(fetchRequestBody), ContentType.APPLICATION_JSON));
 
+        // Send the fetchOpportunity request and process the response
         try (CloseableHttpResponse fetchResponse = client.execute(fetchPost)) {
             InputStream fetchContent = fetchResponse.getEntity().getContent();
             String fetchResponseBody = new String(fetchContent.readAllBytes(), StandardCharsets.UTF_8);
@@ -96,7 +123,7 @@ public class GrantSearcher {
             // === DEBUG: Show raw response ===
             System.out.println("fetchOpportunity raw response for id=" + grant.id + ": " + fetchResponseBody);
 
-            // Parse response
+            // Parse response as a generic Map
             Map<?, ?> fetchRoot = mapper.readValue(fetchResponseBody, Map.class);
 
             Map<?, ?> data = (Map<?, ?>) fetchRoot.get("data");
