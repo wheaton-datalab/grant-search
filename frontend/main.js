@@ -1,6 +1,9 @@
 // Dynamic API URL depending on environment (localhost for dev, production URL otherwise)
 const API_URL =
-  window.location.hostname = "https://grant-search.onrender.com";
+  window.location.hostname === "localhost"
+    ? "http://localhost:8080"
+    : "https://grant-search.onrender.com";
+
 
 console.log("Using API_URL:", API_URL);
 
@@ -94,7 +97,7 @@ window.onload = function () {
         .split(",")
         .map(s => s.trim())
         .filter(s => s !== ""),
-      agencies: document.getElementById("fundingInstruments").value
+      fundingInstruments: document.getElementById("fundingInstruments").value
         .split(",")
         .map(s => s.trim())
         .filter(s => s !== ""),
