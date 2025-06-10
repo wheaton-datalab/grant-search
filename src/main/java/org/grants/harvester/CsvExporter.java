@@ -37,7 +37,6 @@ public class CsvExporter {
                     g.openDate,
                     g.closeDate != null ? g.closeDate : "",
                     g.oppStatus,
-                    g.cfdaList != null ? String.join(";", g.cfdaList) : ""
                 });
             }
         }

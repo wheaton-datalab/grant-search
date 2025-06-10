@@ -17,8 +17,10 @@ public class Grant {
     public String closeDate;
     public String oppStatus;
     public String docType;
-    public List<String> cfdaList;
+    //public List<String> cfdaList;
 
+    public String awardCeiling;
+    public String awardFloor;
     public String description;  // Will hold the synopsisDesc from fetchOpportunity
     public String url;          // Will hold the constructed link to the official page
 
