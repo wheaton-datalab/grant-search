@@ -36,8 +36,7 @@ public class GrantSearcher {
         Map<String, Object> requestBody = Map.of(
             "keyword", config.keyword,
             "oppStatuses", String.join("|", config.oppStatuses),
-            "agencies", String.join("|", config.agencies),
-            "fundingCategories", String.join("|", config.fundingCategories),
+            "fundingInstruments", String.join("|", config.fundingInstruments),
             "rows", config.rows
         );
 

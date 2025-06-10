@@ -11,8 +11,7 @@ public class SearchConfig {
     //prominent fields
     public String keyword;
     public List<String> oppStatuses;
-    public List<String> agencies;
-    public List<String> fundingCategories;
+    public List<String> fundingInstruments;
     public int rows;
 
     @Override
@@ -20,8 +19,7 @@ public class SearchConfig {
         return "SearchConfig{" +
                 "keyword='" + keyword + '\'' +
                 ", oppStatuses='" + oppStatuses + '\'' +
-                ", agencies=" + agencies +
-                ", fundingCategories=" + fundingCategories +
+                ", fundingInstruments='" + fundingInstruments + '\'' +
                 ", rows=" + rows +
                 '}';
     }
