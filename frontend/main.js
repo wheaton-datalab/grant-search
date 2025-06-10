@@ -29,14 +29,15 @@ window.onload = function () {
     // Define CSV header row
     const csvHeader = [
       "ID",
+      "Name",
       "Number",
-      "Title",
       "Agency",
-      "Status",
       "Open Date",
       "Close Date",
-      "CFDA",
       "Description",
+      "Award Ceiling",
+      "Award Floor",
+      "Link"
     ];
 
     // Map each grant result to a CSV row
@@ -50,15 +51,16 @@ window.onload = function () {
       const cleanedDesc = rawDesc.replace(/<[^>]*>/g, "").trim();
 
       return [
-        `=HYPERLINK("${grant.url}", "${grant.id}")`, // Excel hyperlink formula
-        grant.number,
-        grant.title,
-        grant.agency,
-        grant.oppStatus,
-        grant.openDate || "",
-        grant.closeDate || "",
-        grant.cfdaList?.join(";") || "",
-        cleanedDesc
+          `=HYPERLINK("${grant.url}", "${grant.id}")`,
+          grant.title,
+          grant.number,
+          grant.agency,
+          grant.openDate || "",
+          grant.closeDate || "",
+          cleanedDesc,
+          grant.awardCeiling || "",
+          grant.awardFloor || "",
+          grant.url
       ].map(escapeCsvField);
     });
 
@@ -94,11 +96,7 @@ window.onload = function () {
         .split(",")
         .map(s => s.trim())
         .filter(s => s !== ""),
-      agencies: document.getElementById("agencies").value
-        .split(",")
-        .map(s => s.trim())
-        .filter(s => s !== ""),
-      fundingCategories: document.getElementById("fundingCategories").value
+      agencies: document.getElementById("fundingInstruments").value
         .split(",")
         .map(s => s.trim())
         .filter(s => s !== ""),
@@ -132,25 +130,26 @@ window.onload = function () {
         resultsContainer.innerHTML = "<p>No results found.</p>";
       } else {
         results.forEach(grant => {
-          const displayDescription = grant.description === "(No synopsis)" 
+         const displayDescription = grant.description === "(No synopsis)" 
             ? "Check webpage for details" 
-            : grant.description || "(None)";
+            : grant.description?.replace(/<[^>]*>/g, "").trim() || "(None)";
 
           const div = document.createElement("div");
           div.className = "result-card";
 
           div.innerHTML = `
             <h3>${grant.title}</h3>
-            <p><strong>ID:</strong> ${grant.id}</p>
+            <p><strong>ID:</strong> <a href="${grant.url}" target="_blank">${grant.id}</a></p>
             <p><strong>Number:</strong> ${grant.number}</p>
             <p><strong>Agency:</strong> ${grant.agency}</p>
-            <p><strong>Status:</strong> ${grant.oppStatus}</p>
             <p><strong>Open Date:</strong> ${grant.openDate || "N/A"}</p>
             <p><strong>Close Date:</strong> ${grant.closeDate || "N/A"}</p>
-            <p><strong>CFDA:</strong> ${grant.cfdaList?.join(", ") || "None"}</p>
             <p><strong>Description:</strong> ${displayDescription}</p>
-            <p><a href="${grant.url}" target="_blank">View on Grants.gov</a></p>
+            <p><strong>Award Ceiling:</strong> ${grant.awardCeiling || "N/A"}</p>
+            <p><strong>Award Floor:</strong> ${grant.awardFloor || "N/A"}</p>
+            <p><a href="${grant.url}" target="_blank">Full details on Grants.gov</a></p>
           `;
+
 
           resultsContainer.appendChild(div);
         });

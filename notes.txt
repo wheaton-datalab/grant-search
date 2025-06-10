@@ -7,7 +7,6 @@ fetch api to get descriptions and other details
 ordered:
 
 
-
 (X) export to csv, maybe onto screen as well
 (X) get hyperlinks in the csv
 () get succinct search terms
@@ -16,8 +15,26 @@ ordered:
 () disable button unless results exist
 
 
-Here are a few ideas you might want to pursue next:
+Input:
 
+keyword
+status (dropdown)
+Funding Instrument (dropdown)
+number results (number)
+
+
+Output:
+
+Name
+ID (hyperlink to url)
+Number
+Agency
+Open Date
+Close Date
+Description
+Award Ceiling
+Award Floor
+Link
 
 
 
