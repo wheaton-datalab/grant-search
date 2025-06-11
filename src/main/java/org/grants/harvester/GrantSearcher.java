@@ -86,65 +86,65 @@ public class GrantSearcher {
      */
     private static void enrichGrant(Grant grant, CloseableHttpClient client, ObjectMapper mapper) throws Exception {
 
-        // === DEBUG: Are we calling enrichGrant? ===
-        System.out.println("Calling fetchOpportunity for grant id=" + grant.id);
+    System.out.println("Calling fetchOpportunity for grant id=" + grant.id);
 
-        // Defensive: skip if ID is null/empty
-        if (grant.id == null || grant.id.isBlank()) {
-            System.out.println("Skipping grant with blank id");
-            return;
-        }
+    if (grant.id == null || grant.id.isBlank()) {
+        System.out.println("Skipping grant with blank id");
+        return;
+    }
 
-        // Convert id to integer (could throw NumberFormatException)
-        int opportunityId;
-        try {
-            opportunityId = Integer.parseInt(grant.id);
-        } catch (NumberFormatException e) {
-            System.out.println("Skipping grant with non-numeric id=" + grant.id);
-            return;
-        }
+    int opportunityId;
+    try {
+        opportunityId = Integer.parseInt(grant.id);
+    } catch (NumberFormatException e) {
+        System.out.println("Skipping grant with non-numeric id=" + grant.id);
+        return;
+    }
 
-        // Build fetchOpportunity request payload
-        Map<String, Object> fetchRequestBody = Map.of(
-                "opportunityId", opportunityId
-        );
+    Map<String, Object> fetchRequestBody = Map.of(
+        "opportunityId", opportunityId
+    );
 
-        // Prepare the POST request for the fetchOpportunity API
-        HttpPost fetchPost = new HttpPost(FETCH_API_URL);
-        fetchPost.setHeader("Content-Type", "application/json");
-        fetchPost.setEntity(new StringEntity(mapper.writeValueAsString(fetchRequestBody), ContentType.APPLICATION_JSON));
+    HttpPost fetchPost = new HttpPost(FETCH_API_URL);
+    fetchPost.setHeader("Content-Type", "application/json");
+    fetchPost.setEntity(new StringEntity(mapper.writeValueAsString(fetchRequestBody), ContentType.APPLICATION_JSON));
 
-        // Send the fetchOpportunity request and process the response
-        try (CloseableHttpResponse fetchResponse = client.execute(fetchPost)) {
-            InputStream fetchContent = fetchResponse.getEntity().getContent();
-            String fetchResponseBody = new String(fetchContent.readAllBytes(), StandardCharsets.UTF_8);
+    try (CloseableHttpResponse fetchResponse = client.execute(fetchPost)) {
+        InputStream fetchContent = fetchResponse.getEntity().getContent();
+        String fetchResponseBody = new String(fetchContent.readAllBytes(), StandardCharsets.UTF_8);
 
-            // === DEBUG: Show raw response ===
-            System.out.println("fetchOpportunity raw response for id=" + grant.id + ": " + fetchResponseBody);
+        System.out.println("fetchOpportunity raw response for id=" + grant.id + ": " + fetchResponseBody);
 
-            // Parse response as a generic Map
-            Map<?, ?> fetchRoot = mapper.readValue(fetchResponseBody, Map.class);
+        Map<?, ?> fetchRoot = mapper.readValue(fetchResponseBody, Map.class);
+        Map<?, ?> data = (Map<?, ?>) fetchRoot.get("data");
 
-            Map<?, ?> data = (Map<?, ?>) fetchRoot.get("data");
+        if (data != null) {
+            Map<?, ?> synopsis = (Map<?, ?>) data.get("synopsis");
 
-            if (data != null) {
-                Map<?, ?> synopsis = (Map<?, ?>) data.get("synopsis");
+            if (synopsis != null) {
+                // Set description
+                String description = (String) synopsis.get("synopsisDesc");
+                grant.description = description != null ? description.trim() : "(No description)";
 
-                if (synopsis != null) {
-                    String description = (String) synopsis.get("synopsisDesc");
-                    grant.description = description != null ? description.trim() : "(No description)";
-                } else {
-                    grant.description = "(No synopsis)";
-                }
+                // Set award ceiling and floor
+                Object ceiling = synopsis.get("awardCeiling");
+                Object floor = synopsis.get("awardFloor");
 
-                // Add grant URL
-                grant.url = "https://www.grants.gov/search-results-detail/" + grant.id;
-
-                // === DEBUG: Success ===
-                System.out.println("Enriched grant " + grant.id + ": URL=" + grant.url);
+                grant.awardCeiling = (ceiling != null) ? ceiling.toString() : null;
+                grant.awardFloor = (floor != null) ? floor.toString() : null;
             } else {
-                System.out.println("No 'data' field returned for id=" + grant.id);
+                grant.description = "(No synopsis)";
+                grant.awardCeiling = null;
+                grant.awardFloor = null;
             }
+
+            // Set grant URL
+            grant.url = "https://www.grants.gov/search-results-detail/" + grant.id;
+
+            System.out.println("Enriched grant " + grant.id + ": URL=" + grant.url);
+        } else {
+            System.out.println("No 'data' field returned for id=" + grant.id);
         }
     }
+}
 }
