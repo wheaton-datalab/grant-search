@@ -36,9 +36,8 @@ window.onload = function () {
       "Open Date",
       "Close Date",
       "Description",
-      "Award Ceiling",
       "Award Floor",
-      "Link"
+      "Award Ceiling",
     ];
 
     // Map each grant result to a CSV row
@@ -59,9 +58,8 @@ window.onload = function () {
           grant.openDate || "",
           grant.closeDate || "",
           cleanedDesc,
-          grant.awardCeiling || "",
           grant.awardFloor || "",
-          grant.url
+          grant.awardCeiling || "",
       ].map(escapeCsvField);
     });
 
@@ -146,11 +144,9 @@ window.onload = function () {
             <p><strong>Open Date:</strong> ${grant.openDate || "N/A"}</p>
             <p><strong>Close Date:</strong> ${grant.closeDate || "N/A"}</p>
             <p><strong>Description:</strong> ${displayDescription}</p>
-            <p><strong>Award Ceiling:</strong> ${grant.awardCeiling || "N/A"}</p>
             <p><strong>Award Floor:</strong> ${grant.awardFloor || "N/A"}</p>
-            <p><a href="${grant.url}" target="_blank">Full details on Grants.gov</a></p>
+            <p><strong>Award Ceiling:</strong> ${grant.awardCeiling || "N/A"}</p>
           `;
-
 
           resultsContainer.appendChild(div);
         });

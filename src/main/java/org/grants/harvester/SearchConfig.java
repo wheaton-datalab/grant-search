@@ -10,8 +10,7 @@ import java.util.List;
 public class SearchConfig {
     //prominent fields
     public String keyword;
-    public List<String> oppStatuses;
-    public List<String> fundingInstruments;
+    public List<String> oppStatuses, fundingInstruments;
     public int rows;
 
     @Override

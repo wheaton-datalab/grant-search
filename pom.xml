@@ -81,23 +81,6 @@
   <build>
 
     <plugins>
-      <!-- Run Java via Maven
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.1.0</version>
-        <configuration>
-          <mainClass>org.grants.harvester.Main</mainClass>
-        </configuration>
-      </plugin>
-
-      
-      <plugin>
-      <groupId>org.springframework.boot</groupId>
-       <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>3.2.2</version>
-     </plugin>
-  -->
 <!-- Compiler plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

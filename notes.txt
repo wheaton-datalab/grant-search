@@ -9,34 +9,10 @@ ordered:
 
 (X) export to csv, maybe onto screen as well
 (X) get hyperlinks in the csv
-() get succinct search terms
-() get important output in csv
+(x) get succinct search terms
+(x) get important output in csv
 (X) switch to web server, off my own computer
 () disable button unless results exist
-
-
-Input:
-
-keyword
-status (dropdown)
-Funding Instrument (dropdown)
-number results (number)
-
-
-Output:
-
-Name
-ID (hyperlink to url)
-Number
-Agency
-Open Date
-Close Date
-Description
-Award Ceiling
-Award Floor
-Link
-
-
 
 
 floating:

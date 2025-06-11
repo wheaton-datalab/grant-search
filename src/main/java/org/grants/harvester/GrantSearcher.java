@@ -130,12 +130,12 @@ public class GrantSearcher {
                 Object ceiling = synopsis.get("awardCeiling");
                 Object floor = synopsis.get("awardFloor");
 
-                grant.awardCeiling = (ceiling != null) ? ceiling.toString() : null;
                 grant.awardFloor = (floor != null) ? floor.toString() : null;
+                grant.awardCeiling = (ceiling != null) ? ceiling.toString() : null;
             } else {
                 grant.description = "(No synopsis)";
-                grant.awardCeiling = null;
                 grant.awardFloor = null;
+                grant.awardCeiling = null;
             }
 
             // Set grant URL
