@@ -88,7 +88,7 @@ window.onload = function () {
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    // Gather form data and build request payload
+    // Gather form data and build request payload :)
     const data = {
       keyword: document.getElementById("keyword").value,
       oppStatuses: document.getElementById("oppStatuses").value
