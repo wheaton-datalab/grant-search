@@ -1,10 +1,10 @@
-to do:
+*to do:*
+pick API
+NIH I think
 
-java -jar target/grants-harvester-1.0-SNAPSHOT.jar
 
-fetch api to get descriptions and other details
 
-ordered:
+*ordered:*
 
 
 (X) export to csv, maybe onto screen as well
@@ -12,14 +12,34 @@ ordered:
 (x) get succinct search terms
 (x) get important output in csv
 (X) switch to web server, off my own computer
-() disable button unless results exist
+() disable button unless results exist (cosmetic)
+() write complete README
 
 
-floating:
+*floating:*
 
-hook up another API
+() get list without keyword
 
-crawl wheaton webpage (crawling engine, takes the webpage extension dr. li will write)
+() ---------hook up another API no other viable options :(
 
-AI to get the percentage chance someone could get an opportunity (gates foundation .csv)
+() crawl wheaton webpage (crawling engine, takes the webpage extension, Kevin will write)
 
+() AI to get the percentage chance someone could get an opportunity (gates foundation .csv)
+nsf grantees information - award search
+
+
+*possible data sources*
+
+Gates Foundation csv
+- no rejection data
+- no professor profiles, only the colleges they represent
+-
+
+
+
+
+
+
+*info i might need later:*
+
+java -jar target/grants-harvester-1.0-SNAPSHOT.jar

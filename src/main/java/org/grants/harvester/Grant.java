@@ -26,6 +26,22 @@ public class Grant {
     public String description;
     public String url;         
 
+    public Grant(String id, String title, String number, String agency, 
+             String openDate, String closeDate, String description,
+             String awardFloor, String awardCeiling, String url) {
+        this.id = id;
+        this.title = title;
+        this.number = number;
+        this.agency = agency;
+        this.openDate = openDate;
+        this.closeDate = closeDate;
+        this.description = description;
+        this.awardFloor = awardFloor;
+        this.awardCeiling = awardCeiling;
+        this.url = url;
+}
+
+
     @Override
     public String toString() {
         return number + " | " + title + " | " + agency + " | Open: " + openDate;
