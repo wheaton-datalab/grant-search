@@ -103,7 +103,7 @@ window.onload = function () {
 
       department: document.getElementById("department")?.value.trim(),
       institutionType: document.getElementById("institutionType")?.value.trim(),
-      state: document.getElementById("state")?.value
+      userState: document.getElementById("state")?.value
     };
 
     try {

@@ -36,6 +36,7 @@ public class GrantSearcher {
         return run(config);
     }
 
+    
 
     /**
      * Runs a grant search using the provided configuration, then enriches each result with additional details.

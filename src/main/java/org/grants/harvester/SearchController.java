@@ -27,6 +27,15 @@ public class SearchController {
      */
     @PostMapping("/search")
     public List<Grant> search(@RequestBody SearchRequest request) throws Exception {
+
+      
+        System.out.println("🔍 Received search request:");
+        System.out.println("Keyword: " + request.getKeyword());
+        System.out.println("Department: " + request.getDepartment());
+        System.out.println("Institution Type: " + request.getInstitutionType());
+        System.out.println("State: " + request.getUserState());
+
+
         // Log request parameters for debugging
         logger.info("🔎 Received search request:");
         logger.info("Keyword: {}", request.getKeyword());
