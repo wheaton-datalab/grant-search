@@ -8,6 +8,11 @@ public class SearchRequest {
     private List<String> fundingInstruments;
     private int rows;
 
+    private String department;
+    private String institutionType;
+    private String userState;
+
+
     // Getters and setters
     public String getKeyword() { return keyword; }
     public void setKeyword(String keyword) { this.keyword = keyword; }
@@ -20,4 +25,13 @@ public class SearchRequest {
 
     public int getRows() { return rows; }
     public void setRows(int rows) { this.rows = rows; }
+
+    public String getDepartment() { return department;}
+    public void setDepartment(String department) { this.department = department;}
+
+    public String getInstitutionType() { return institutionType; }
+    public void setInstitutionType(String institutionType) { this.institutionType = institutionType; }
+
+    public String getUserState() { return userState; }
+    public void setUserState(String userState) { this.userState = userState; }
 }

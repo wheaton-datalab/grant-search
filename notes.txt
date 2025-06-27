@@ -43,3 +43,14 @@ Gates Foundation csv
 *info i might need later:*
 
 java -jar target/grants-harvester-1.0-SNAPSHOT.jar
+
+
+
+
+
+notes:
+
+display archived results as well as new ones
+
+press release: 
+

@@ -99,7 +99,11 @@ window.onload = function () {
         .split(",")
         .map(s => s.trim())
         .filter(s => s !== ""),
-      rows: parseInt(document.getElementById("rows").value)
+      rows: parseInt(document.getElementById("rows").value),
+
+      department: document.getElementById("department")?.value.trim(),
+      institutionType: document.getElementById("institutionType")?.value.trim(),
+      state: document.getElementById("state")?.value
     };
 
     try {
