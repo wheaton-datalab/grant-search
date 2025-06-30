@@ -24,7 +24,11 @@ public class Grant {
 
     public String awardCeiling, awardFloor;
     public String description;
-    public String url;         
+    public String url;
+    
+    // Required for Jackson deserialization
+    public Grant() {
+    }
 
     public Grant(String id, String title, String number, String agency, 
              String openDate, String closeDate, String description,
