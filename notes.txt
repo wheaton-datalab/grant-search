@@ -28,15 +28,6 @@ NIH I think
 nsf grantees information - award search
 
 
-*possible data sources*
-
-Gates Foundation csv
-- no rejection data
-- no professor profiles, only the colleges they represent
--
-
-
-
 
 
 
@@ -54,3 +45,8 @@ display archived results as well as new ones
 
 press release: 
 
+notes:
+
+regression analysis
+how many investigators
+length of abstract

@@ -1,0 +1,11 @@
+{
+  "user": {
+    "department": "Biochemistry",
+    "institutionType": "Schools of Medicine",
+    "state": "CA"
+  },
+  "results": [
+    { "title": "Grant 1", "description": "Study of protein folding" },
+    { "title": "Grant 2", "description": "Climate change education" }
+  ]
+}

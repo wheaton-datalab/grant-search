@@ -172,3 +172,16 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# NIH tools and large files
+**/nih_awards_enrichedFULL.csv
+**/.~lock.nih_awards_enrichedFULL.csv#
+**/load_large_csv.py
+**/nih_grants.sqlite
+
+# Big files and tools to exclude
+**/first20.xlsx
+**/~$first20.xlsx
+**/tools/*.exe
+**/encoder.pkl
+**/tfidf_vectorizer.pkl
