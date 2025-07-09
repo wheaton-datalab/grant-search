@@ -1,54 +1,71 @@
 package org.grants.harvester;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.springframework.web.bind.annotation.*;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * REST controller that handles grant search requests.
- * 
- * Exposes an endpoint for clients to submit search parameters and receive matching grant opportunities.
- */
-@CrossOrigin(origins = "*") // Allow requests from any origin (CORS)
+@CrossOrigin(origins = "*")
 @RestController
 public class SearchController {
 
     private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    /**
-     * Handles POST requests to /search.
-     * 
-     * Accepts a SearchRequest object in the request body and returns a list of matching Grant objects.
-     *
-     * @param request The search request sent by the client
-     * @return List of Grant objects matching the search criteria
-     * @throws Exception if an error occurs during the search
-     */
     @PostMapping("/search")
     public List<Grant> search(@RequestBody SearchRequest request) throws Exception {
-
-      
         System.out.println("🔍 Received search request:");
-        System.out.println("Keyword: " + request.getKeyword());
-        System.out.println("Department: " + request.getDepartment());
-        System.out.println("Institution Type: " + request.getInstitutionType());
-        System.out.println("State: " + request.getUserState());
-
-
-        // Log request parameters for debugging
-        logger.info("🔎 Received search request:");
         logger.info("Keyword: {}", request.getKeyword());
-        logger.info("Opportunity Statuses: {}", request.getOppStatuses());
-        logger.info("Funding Instruments: {}", request.getFundingInstruments());
-        logger.info("Rows: {}", request.getRows());
+        logger.info("Department: {}", request.getDepartment());
+        logger.info("Institution Type: {}", request.getInstitutionType());
+        logger.info("State: {}", request.getUserState());
 
-        // Log new user context fields
-        logger.info("User Department: {}", request.getDepartment());
-        logger.info("User Institution Type: {}", request.getInstitutionType());
-        logger.info("User State: {}", request.getUserState());
+        // Step 1: Get original results from Grants.gov API
+        List<Grant> grants = GrantSearcher.run(request);
 
-        // Pass request to GrantSearcher
-        return GrantSearcher.run(request);
+        // Step 2: Prepare JSON payload for Python
+        Map<String, Object> jsonWrapper = Map.of(
+            "user", Map.of(
+                "department", request.getDepartment(),
+                "institutionType", request.getInstitutionType(),
+                "state", request.getUserState()
+            ),
+            "results", grants
+        );
+
+        // Step 3: Write input JSON to temp file
+        Path inputPath = Files.createTempFile("grants_input", ".json");
+        Path outputPath = Files.createTempFile("grants_output", ".json");
+        mapper.writeValue(inputPath.toFile(), jsonWrapper);
+
+        // Step 4: Run Python script
+        ProcessBuilder pb = new ProcessBuilder(
+            "python", "rank_grants_cli.py",
+            inputPath.toString(),
+            outputPath.toString()
+        );
+        // Replace this with the path to your script
+        pb.directory(new File("C:/Users/gavin/sr25/grant-search"));  // CHANGE if needed
+        pb.redirectErrorStream(true); // Merge stderr into stdout
+        Process process = pb.start();
+        int exitCode = process.waitFor();
+
+        if (exitCode != 0) {
+            logger.error("⚠️ Python ranking script failed (exit code {}). Returning unranked results.", exitCode);
+            return grants;
+        }
+
+        // Step 5: Read ranked results
+        List<Grant> ranked = mapper.readValue(outputPath.toFile(), new TypeReference<List<Grant>>() {});
+        return ranked;
     }
 }
