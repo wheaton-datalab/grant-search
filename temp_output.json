@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Grant 1",
+    "description": "Study of protein folding",
+    "text": "grant 1 study of protein folding",
+    "institution_type": "schools of medicine",
+    "user_state": "CA",
+    "similarity_score": 0.816496580927726
+  },
+  {
+    "title": "Grant 2",
+    "description": "Climate change education",
+    "text": "grant 2 climate change education",
+    "institution_type": "schools of medicine",
+    "user_state": "CA",
+    "similarity_score": 0.816496580927726
+  }
+]

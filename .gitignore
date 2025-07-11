@@ -185,3 +185,5 @@ cython_debug/
 **/tools/*.exe
 **/encoder.pkl
 **/tfidf_vectorizer.pkl
+**/first1000.csv
+**/first5000.csv

@@ -1,9 +1,10 @@
 // Dynamic API URL depending on environment (localhost for dev, production URL otherwise)
-const API_URL =
+const API_URL = "http://localhost:8080";
+/*
   window.location.hostname === "localhost"
     ? "http://localhost:8080"
     : "https://grant-search.onrender.com";
-
+*/
 
 console.log("Using API_URL:", API_URL);
 
@@ -142,6 +143,10 @@ window.onload = function () {
 
           div.innerHTML = `
             <h3>${grant.title}</h3>
+            <div class="match-bar-container">
+              <div class="match-bar" style="width: ${Math.round((grant.similarity_score || 0) * 100)}%;"></div>
+            </div>
+            <p><strong>Match Score:</strong> ${grant.similarity_score != null ? (grant.similarity_score * 100).toFixed(1) + "%" : "N/A"}</p>
             <p><strong>ID:</strong> <a href="${grant.url}" target="_blank">${grant.id}</a></p>
             <p><strong>Number:</strong> ${grant.number}</p>
             <p><strong>Agency:</strong> ${grant.agency}</p>
@@ -151,6 +156,7 @@ window.onload = function () {
             <p><strong>Award Floor:</strong> ${grant.awardFloor || "N/A"}</p>
             <p><strong>Award Ceiling:</strong> ${grant.awardCeiling || "N/A"}</p>
           `;
+
 
           resultsContainer.appendChild(div);
         });

@@ -25,6 +25,8 @@ public class Grant {
     public String awardCeiling, awardFloor;
     public String description;
     public String url;
+    public Double similarity_score;
+
     
     // Required for Jackson deserialization
     public Grant() {

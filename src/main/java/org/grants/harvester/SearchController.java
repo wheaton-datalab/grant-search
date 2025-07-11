@@ -57,10 +57,34 @@ public class SearchController {
         pb.directory(new File("C:/Users/gavin/sr25/grant-search"));  // CHANGE if needed
         pb.redirectErrorStream(true); // Merge stderr into stdout
         Process process = pb.start();
+        /*
         int exitCode = process.waitFor();
 
         if (exitCode != 0) {
             logger.error("⚠️ Python ranking script failed (exit code {}). Returning unranked results.", exitCode);
+            return grants;
+        }*/
+
+       // Capture and log the output from the Python process
+        try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                logger.info("Python: " + line);
+            }
+        }
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            logger.error("⚠️ Python ranking script failed (exit code {}). Returning unranked results.", exitCode);
+
+            // Also read and print any remaining error output
+            try (var errorReader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getErrorStream()))) {
+                String line;
+                while ((line = errorReader.readLine()) != null) {
+                    logger.error("🐍 Python stderr: " + line);
+                }
+            }
+
             return grants;
         }
 

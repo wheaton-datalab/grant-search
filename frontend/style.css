@@ -97,3 +97,17 @@ button {
   background-color: whitesmoke;
   color: black;
 }
+
+.match-bar-container {
+  background-color: #eee;
+  border-radius: 4px;
+  height: 10px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.match-bar {
+  height: 100%;
+  background: linear-gradient(to right, #4caf50, #81c784);
+  transition: width 0.3s ease-in-out;
+}
