@@ -50,3 +50,12 @@ notes:
 regression analysis
 how many investigators
 length of abstract
+
+
+
+LAST WEEK:
+
+tighten up matching
+make website pretty
+detaillllleeeeddd README
+

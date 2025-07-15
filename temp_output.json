@@ -1,18 +1,30 @@
 [
   {
-    "title": "Grant 1",
-    "description": "Study of protein folding",
-    "text": "grant 1 study of protein folding",
-    "institution_type": "schools of medicine",
-    "user_state": "CA",
-    "similarity_score": 0.816496580927726
+    "id": "334326",
+    "number": "21-595",
+    "title": "Tribal Colleges and Universities Program",
+    "agency": "U.S. National Science Foundation",
+    "openDate": "06/24/2021",
+    "closeDate": "09/02/2025",
+    "description": "Support for STEM education and research capacity building.",
+    "awardFloor": "100000",
+    "awardCeiling": "3500000",
+    "url": "https://www.grants.gov/search-results-detail/334326",
+    "text": "tribal colleges and universities program support for stem education and research capacity building.",
+    "predicted_award": 891787.07
   },
   {
-    "title": "Grant 2",
-    "description": "Climate change education",
-    "text": "grant 2 climate change education",
-    "institution_type": "schools of medicine",
-    "user_state": "CA",
-    "similarity_score": 0.816496580927726
+    "id": "350230",
+    "number": "PD-24-1340",
+    "title": "Research in the Formation of Engineers",
+    "agency": "U.S. National Science Foundation",
+    "openDate": "09/17/2023",
+    "closeDate": "N/A",
+    "description": "Advance understanding of how engineers are formed through education.",
+    "awardFloor": "",
+    "awardCeiling": "",
+    "url": "https://www.grants.gov/search-results-detail/350230",
+    "text": "research in the formation of engineers advance understanding of how engineers are formed through education.",
+    "predicted_award": 620515.5
   }
 ]

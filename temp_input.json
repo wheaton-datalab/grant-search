@@ -1,0 +1,32 @@
+{
+  "user": {
+    "institutionType": "R1",
+    "state": "IL"
+  },
+  "results": [
+    {
+      "id": "334326",
+      "number": "21-595",
+      "title": "Tribal Colleges and Universities Program",
+      "agency": "U.S. National Science Foundation",
+      "openDate": "06/24/2021",
+      "closeDate": "09/02/2025",
+      "description": "Support for STEM education and research capacity building.",
+      "awardFloor": "100000",
+      "awardCeiling": "3500000",
+      "url": "https://www.grants.gov/search-results-detail/334326"
+    },
+    {
+      "id": "350230",
+      "number": "PD-24-1340",
+      "title": "Research in the Formation of Engineers",
+      "agency": "U.S. National Science Foundation",
+      "openDate": "09/17/2023",
+      "closeDate": "N/A",
+      "description": "Advance understanding of how engineers are formed through education.",
+      "awardFloor": "",
+      "awardCeiling": "",
+      "url": "https://www.grants.gov/search-results-detail/350230"
+    }
+  ]
+}

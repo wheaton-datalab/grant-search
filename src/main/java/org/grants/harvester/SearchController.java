@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -21,18 +24,18 @@ public class SearchController {
     private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    @PostMapping("/search")
+   @PostMapping("/search")
     public List<Grant> search(@RequestBody SearchRequest request) throws Exception {
-        System.out.println("🔍 Received search request:");
+        logger.info("🔎 Received search request:");
         logger.info("Keyword: {}", request.getKeyword());
         logger.info("Department: {}", request.getDepartment());
         logger.info("Institution Type: {}", request.getInstitutionType());
         logger.info("State: {}", request.getUserState());
 
-        // Step 1: Get original results from Grants.gov API
+        // Step 1: Get initial results from Grants.gov API
         List<Grant> grants = GrantSearcher.run(request);
 
-        // Step 2: Prepare JSON payload for Python
+        // Step 2: Write input JSON for ranking
         Map<String, Object> jsonWrapper = Map.of(
             "user", Map.of(
                 "department", request.getDepartment(),
@@ -42,54 +45,69 @@ public class SearchController {
             "results", grants
         );
 
-        // Step 3: Write input JSON to temp file
         Path inputPath = Files.createTempFile("grants_input", ".json");
-        Path outputPath = Files.createTempFile("grants_output", ".json");
+        Path rankedPath = Files.createTempFile("grants_output", ".json");
         mapper.writeValue(inputPath.toFile(), jsonWrapper);
 
-        // Step 4: Run Python script
-        ProcessBuilder pb = new ProcessBuilder(
+        // Step 3: Call Python ranking script
+        ProcessBuilder pb1 = new ProcessBuilder(
             "python", "rank_grants_cli.py",
             inputPath.toString(),
-            outputPath.toString()
+            rankedPath.toString()
         );
-        // Replace this with the path to your script
-        pb.directory(new File("C:/Users/gavin/sr25/grant-search"));  // CHANGE if needed
-        pb.redirectErrorStream(true); // Merge stderr into stdout
-        Process process = pb.start();
-        /*
-        int exitCode = process.waitFor();
+        pb1.directory(new File("C:/Users/gavin/sr25/grant-search")); // Adjust if needed
+        pb1.redirectErrorStream(true);
+        Process rankProcess = pb1.start();
+        int rankExit = rankProcess.waitFor();
 
-        if (exitCode != 0) {
-            logger.error("⚠️ Python ranking script failed (exit code {}). Returning unranked results.", exitCode);
-            return grants;
-        }*/
-
-       // Capture and log the output from the Python process
-        try (var reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                logger.info("Python: " + line);
-            }
-        }
-
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            logger.error("⚠️ Python ranking script failed (exit code {}). Returning unranked results.", exitCode);
-
-            // Also read and print any remaining error output
-            try (var errorReader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getErrorStream()))) {
-                String line;
-                while ((line = errorReader.readLine()) != null) {
-                    logger.error("🐍 Python stderr: " + line);
-                }
-            }
-
+        if (rankExit != 0) {
+            logger.error("[!] Ranking script failed (exit {}). Returning unranked results.", rankExit);
             return grants;
         }
 
-        // Step 5: Read ranked results
-        List<Grant> ranked = mapper.readValue(outputPath.toFile(), new TypeReference<List<Grant>>() {});
-        return ranked;
+        // Step 4: Read ranked results
+        List<Grant> ranked = mapper.readValue(rankedPath.toFile(), new TypeReference<List<Grant>>() {});
+
+        // Step 5: Write ranked results to file for prediction
+        Path predInput = Files.createTempFile("predict_input", ".json");
+        Path predOutput = Files.createTempFile("predict_output", ".json");
+        Map<String, Object> predWrapper = Map.of(
+            "user", Map.of(
+                "department", request.getDepartment(),
+                "institutionType", request.getInstitutionType(),
+                "state", request.getUserState()
+            ),
+            "results", ranked
+        );
+        mapper.writeValue(predInput.toFile(), predWrapper);
+
+
+        // Step 6: Call Python prediction script
+        ProcessBuilder pb2 = new ProcessBuilder(
+            "python", "predict_awards_cli.py",
+            predInput.toString(),
+            predOutput.toString()
+        );
+        pb2.directory(new File("C:/Users/gavin/sr25/grant-search")); // Adjust if needed
+        pb2.redirectErrorStream(true);
+        Process predictProcess = pb2.start();
+        int predictExit = predictProcess.waitFor();
+
+        // 👇 Add this to print Python output
+        InputStream is = predictProcess.getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            logger.info("Python: " + line);
+}
+        if (predictExit != 0) {
+            logger.error("⚠️ Award prediction script failed (exit {}). Returning without predictions.", predictExit);
+            return ranked;
+        }
+
+        // Step 7: Return enriched final results
+        List<Grant> finalResults = mapper.readValue(predOutput.toFile(), new TypeReference<List<Grant>>() {});
+        return finalResults;
     }
+
 }

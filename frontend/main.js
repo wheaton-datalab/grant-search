@@ -138,15 +138,11 @@ window.onload = function () {
             ? "Check webpage for details" 
             : grant.description?.replace(/<[^>]*>/g, "").trim() || "(None)";
 
-          const div = document.createElement("div");
+         const div = document.createElement("div");
           div.className = "result-card";
 
           div.innerHTML = `
             <h3>${grant.title}</h3>
-            <div class="match-bar-container">
-              <div class="match-bar" style="width: ${Math.round((grant.similarity_score || 0) * 100)}%;"></div>
-            </div>
-            <p><strong>Match Score:</strong> ${grant.similarity_score != null ? (grant.similarity_score * 100).toFixed(1) + "%" : "N/A"}</p>
             <p><strong>ID:</strong> <a href="${grant.url}" target="_blank">${grant.id}</a></p>
             <p><strong>Number:</strong> ${grant.number}</p>
             <p><strong>Agency:</strong> ${grant.agency}</p>
@@ -155,10 +151,18 @@ window.onload = function () {
             <p><strong>Description:</strong> ${displayDescription}</p>
             <p><strong>Award Floor:</strong> ${grant.awardFloor || "N/A"}</p>
             <p><strong>Award Ceiling:</strong> ${grant.awardCeiling || "N/A"}</p>
+            <p><strong>Match Score:</strong> ${typeof grant.similarity_score === "number"
+              ? (grant.similarity_score * 100).toFixed(1) + "%"
+              : "N/A"}</p>
+            <p><strong>Predicted Award:</strong> ${typeof grant.predictedAward === "number"
+              ? "$" + Number(grant.predictedAward).toLocaleString(undefined, {
+                  maximumFractionDigits: 0
+                })
+              : "N/A"}</p>
           `;
 
+resultsContainer.appendChild(div);
 
-          resultsContainer.appendChild(div);
         });
       }
 

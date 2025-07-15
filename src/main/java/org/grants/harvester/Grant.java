@@ -26,8 +26,8 @@ public class Grant {
     public String description;
     public String url;
     public Double similarity_score;
+    public Double predictedAward; // predicted amount in dollars
 
-    
     // Required for Jackson deserialization
     public Grant() {
     }
