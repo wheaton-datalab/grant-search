@@ -11,7 +11,7 @@
     "awardCeiling": "3500000",
     "url": "https://www.grants.gov/search-results-detail/334326",
     "text": "tribal colleges and universities program support for stem education and research capacity building.",
-    "predicted_award": 891787.07
+    "predictedAward": 891787.07
   },
   {
     "id": "350230",
@@ -25,6 +25,6 @@
     "awardCeiling": "",
     "url": "https://www.grants.gov/search-results-detail/350230",
     "text": "research in the formation of engineers advance understanding of how engineers are formed through education.",
-    "predicted_award": 620515.5
+    "predictedAward": 620515.5
   }
 ]
