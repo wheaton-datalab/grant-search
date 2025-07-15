@@ -88,20 +88,21 @@ public class SearchController {
             predInput.toString(),
             predOutput.toString()
         );
-        pb2.directory(new File("C:/Users/gavin/sr25/grant-search")); // Adjust if needed
+        pb2.directory(new File("."));
         pb2.redirectErrorStream(true);
         Process predictProcess = pb2.start();
         int predictExit = predictProcess.waitFor();
 
-        // 👇 Add this to print Python output
-        InputStream is = predictProcess.getInputStream();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        //InputStream is = predictProcess.getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(predictProcess.getInputStream()));
+        StringBuilder fullOutput = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
             logger.info("Python: " + line);
-}
+            fullOutput.append(line).append("\n");
+        }
         if (predictExit != 0) {
-            logger.error("⚠️ Award prediction script failed (exit {}). Returning without predictions.", predictExit);
+            logger.error("[!] Award prediction script failed (exit {}). Output:\n{}", predictExit, fullOutput.toString());
             return ranked;
         }
 

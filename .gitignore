@@ -183,7 +183,5 @@ cython_debug/
 **/first20.xlsx
 **/~$first20.xlsx
 **/tools/*.exe
-**/encoder.pkl
-**/tfidf_vectorizer.pkl
 **/first1000.csv
 **/first5000.csv
