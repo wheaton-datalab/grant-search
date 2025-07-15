@@ -51,7 +51,7 @@ public class SearchController {
 
         // Step 3: Call Python ranking script
         ProcessBuilder pb1 = new ProcessBuilder(
-            "python", "rank_grants_cli.py",
+            "python", "tools/rank_grants_cli.py",
             inputPath.toString(),
             rankedPath.toString()
         );
@@ -84,7 +84,7 @@ public class SearchController {
 
         // Step 6: Call Python prediction script
         ProcessBuilder pb2 = new ProcessBuilder(
-            "python", "predict_awards_cli.py",
+            "python", "tools/predict_awards_cli.py",
             predInput.toString(),
             predOutput.toString()
         );

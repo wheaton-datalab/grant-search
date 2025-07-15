@@ -10,10 +10,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the whole project
-COPY . .
+COPY . /app/
 
 # Install Python dependencies from requirements.txt
-RUN pip3 install --no-cache-dir -r requirements.txt
+#RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Build the Java app
 RUN mvn clean install
@@ -22,4 +23,5 @@ RUN mvn clean install
 EXPOSE 8080
 
 # Run the Java JAR (update JAR name if different)
-CMD ["java", "-jar", "target/grants-harvester-1.0-SNAPSHOT.jar"]
+#CMD ["java", "-jar", "target/grants-harvester-1.0-SNAPSHOT.jar"]
+CMD ["java", "-jar", "target/grant-search-0.0.1-SNAPSHOT.jar"]
