@@ -7,6 +7,7 @@ WORKDIR /app
 # Install Python and pip
 RUN apt-get update && \
     apt-get install -y python3 python3-pip && \
+    ln -s /usr/bin/python3 /usr/bin/python && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the whole project
