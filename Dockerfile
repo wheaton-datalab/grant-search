@@ -11,6 +11,7 @@ RUN apt-get update && \
 
 # Copy the whole project
 COPY . /app/
+COPY tools /app/tools
 
 # Install Python dependencies from requirements.txt
 #RUN pip3 install --no-cache-dir -r requirements.txt

@@ -6,6 +6,9 @@ import pandas as pd
 import joblib
 import numpy as np
 from scipy.sparse import hstack
+import os; print("FILES:", os.listdir("tools"))
+print("Working dir:", os.getcwd())
+
 
 # Load trained model and encoders
 model = joblib.load("tools/award_predictor.pkl")
