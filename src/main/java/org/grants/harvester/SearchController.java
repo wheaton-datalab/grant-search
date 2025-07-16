@@ -51,7 +51,7 @@ public class SearchController {
 
         // Step 3: Call Python ranking script
         ProcessBuilder pb1 = new ProcessBuilder(
-            "python3", "tools/rank_grants_cli.py",
+            "/usr/bin/python3", "tools/rank_grants_cli.py",
             inputPath.toString(),
             rankedPath.toString()
         );
@@ -82,9 +82,14 @@ public class SearchController {
         mapper.writeValue(predInput.toFile(), predWrapper);
 
 
+        System.out.println("🔧 PATH: " + System.getenv("PATH"));
+        File pythonExecutable = new File("/usr/bin/python");
+        System.out.println("🔍 Python exists at /usr/bin/python? " + pythonExecutable.exists());
+
+
         // Step 6: Call Python prediction script
         ProcessBuilder pb2 = new ProcessBuilder(
-            "python3", "tools/predict_awards_cli.py",
+            "/usr/bin/python3", "tools/predict_awards_cli.py",
             predInput.toString(),
             predOutput.toString()
         );
