@@ -51,7 +51,7 @@ public class SearchController {
 
         // Step 3: Call Python ranking script
         ProcessBuilder pb1 = new ProcessBuilder(
-            "python", "tools/rank_grants_cli.py",
+            "python3", "tools/rank_grants_cli.py",
             inputPath.toString(),
             rankedPath.toString()
         );
@@ -84,12 +84,15 @@ public class SearchController {
 
         // Step 6: Call Python prediction script
         ProcessBuilder pb2 = new ProcessBuilder(
-            "python", "tools/predict_awards_cli.py",
+            "python3", "tools/predict_awards_cli.py",
             predInput.toString(),
             predOutput.toString()
         );
         pb2.directory(new File("."));
         pb2.redirectErrorStream(true);
+        System.out.println("ENV PATH: " + System.getenv("PATH"));
+        System.out.println("Trying to run: python tools/predict_awards_cli.py");
+
         Process predictProcess = pb2.start();
         int predictExit = predictProcess.waitFor();
 
