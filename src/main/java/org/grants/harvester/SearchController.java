@@ -86,6 +86,9 @@ public class SearchController {
         File pythonExecutable = new File("/usr/bin/python");
         System.out.println("🔍 Python exists at /usr/bin/python? " + pythonExecutable.exists());
 
+        System.out.println("Checking if Python exists: " + new File("/usr/bin/python").exists());
+        System.out.println("Checking if script exists: " + new File("tools/predict_awards_cli.py").exists());
+
 
         // Step 6: Call Python prediction script
         ProcessBuilder pb2 = new ProcessBuilder(
