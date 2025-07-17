@@ -1,27 +1,22 @@
-# Use Maven base image with Java 21
+# Use Maven with Java 21 base image
 FROM maven:3.9.6-eclipse-temurin-21
 
-# Set working directory
 WORKDIR /app
 
 # Install Python and pip
 RUN apt-get update && \
     apt-get install -y python3 python3-pip && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    python3 --version && pip3 --version && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy entire project into container
+# Copy project
 COPY . .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python requirements
+RUN pip install -r requirements.txt
 
-# Build the Java Spring Boot application
+# Build the Spring Boot app
 RUN mvn clean install
 
-# Expose port for Spring Boot
 EXPOSE 8080
 
-# Default command
 CMD ["java", "-jar", "target/grants-harvester-1.0-SNAPSHOT.jar"]

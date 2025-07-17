@@ -18,9 +18,9 @@ public class SearchController {
             System.out.println("Keyword: " + request.getKeyword());
             System.out.println("Department: " + request.getDepartment());
             System.out.println("Institution Type: " + request.getInstitutionType());
-            System.out.println("State: " + request.getState());
+            System.out.println("State: " + request.getUserState());
 
-            // Step 1: Serialize the Java request to JSON input file
+            // Step 1: Write input.json to /app directory
             String inputJson = """
                 {
                   "keyword": "%s",
@@ -32,29 +32,29 @@ public class SearchController {
                     request.getKeyword(),
                     request.getDepartment(),
                     request.getInstitutionType(),
-                    request.getState()
+                    request.getUserState()
                 );
 
-            Path inputFilePath = Paths.get("input.json");
-            Files.writeString(inputFilePath, inputJson);
-            System.out.println("✅ Wrote input.json for Python: " + inputFilePath.toAbsolutePath());
+            Path inputPath = Paths.get("/app/input.json");
+            Files.writeString(inputPath, inputJson);
+            System.out.println("✅ Wrote input.json: " + inputPath.toAbsolutePath());
 
-            // Step 2: Define the Python script and output file
-            String pythonScript = "predict_awards_cli.py";
-            String pythonBinary = "python";  // works because of Docker symlink
-            String outputFile = "ranked_output.json";
+            // Step 2: Define paths
+            String pythonBinary = "/usr/bin/python3";  // absolute path to Python
+            String scriptPath = "/app/predict_awards_cli.py";  // absolute path to script
+            String outputPath = "/app/ranked_output.json";
 
-            // Step 3: Construct and start the process
+            // Step 3: Run the Python script
             ProcessBuilder pb = new ProcessBuilder(
-                pythonBinary, pythonScript, inputFilePath.toString()
+                pythonBinary, scriptPath, inputPath.toString()
             );
-            pb.directory(new File(".")); // explicitly set working directory to /app
-            pb.redirectErrorStream(true); // merge stdout and stderr
+            pb.redirectErrorStream(true);
+            pb.directory(new File("/app"));
 
-            System.out.println("🚀 Running Python script...");
+            System.out.println("🚀 Running Python script at: " + scriptPath);
             Process process = pb.start();
 
-            // Step 4: Pipe Python output to log for debugging
+            // Step 4: Pipe Python output for debugging
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()))) {
                 String line;
@@ -70,15 +70,15 @@ public class SearchController {
                         .body("Python script failed with exit code " + exitCode);
             }
 
-            // Step 5: Read output JSON and return it
-            String outputJson = Files.readString(Paths.get(outputFile));
+            // Step 5: Read ranked_output.json
+            String outputJson = Files.readString(Paths.get(outputPath));
             return ResponseEntity.ok().body(outputJson);
 
         } catch (Exception e) {
             System.err.println("🔥 ERROR in SearchController: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Server encountered an error: " + e.getMessage());
+                    .body("Server error: " + e.getMessage());
         }
     }
 }
