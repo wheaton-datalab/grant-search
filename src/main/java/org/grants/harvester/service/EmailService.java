@@ -1,73 +1,108 @@
 package org.grants.harvester.service;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-
 import org.grants.harvester.dto.GrantPlanDTO;
+import org.grants.harvester.dto.PlanDTO;
+import org.grants.harvester.entity.ProfPlan;
 import org.grants.harvester.entity.Subscription;
+import org.grants.harvester.repository.ProfPlanRepository;
 import org.grants.harvester.repository.SubscriptionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.*;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class EmailService {
 
-    private final SubscriptionRepository subscriptionRepo;
-    private final PipelineService pipeline;      // your existing service
-    private final JavaMailSender mailSender;
-    private final String fromAddr;
+    @Autowired
+    private SubscriptionRepository subscriptionRepo;
 
-    public EmailService(SubscriptionRepository subscriptionRepo,
-                        PipelineService pipeline,
-                        JavaMailSender mailSender,
-                        @Value("${spring.mail.username}") String fromAddr) {
-        this.subscriptionRepo = subscriptionRepo;
-        this.pipeline         = pipeline;
-        this.mailSender       = mailSender;
-        this.fromAddr         = fromAddr;
-    }
+    @Autowired
+    private ProfPlanRepository profPlanRepo;
+
+    @Autowired
+    private PipelineService pipeline;
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Value("${spring.mail.username}")
+    private String fromAddr;
 
     /**
      * Every Monday at 05:00 UTC send out emails.
      */
     @Scheduled(cron = "0 0 5 * * MON")
     public void sendWeekly() {
-        // 1) load all enabled subscriptions
-        List<Subscription> subs = subscriptionRepo.findAll()
-            .stream()
-            .filter(Subscription::isEnabled)
-            .collect(Collectors.toList());
+        List<Subscription> subs = subscriptionRepo.findAll().stream()
+                .filter(Subscription::isEnabled)
+                .collect(Collectors.toList());
 
-        // 2) group by slug
         Map<String, List<String>> emailsBySlug = subs.stream()
-            .collect(Collectors.groupingBy(
-                Subscription::getSlug,
-                Collectors.mapping(Subscription::getEmail, Collectors.toList())
-            ));
+                .collect(Collectors.groupingBy(
+                        Subscription::getSlug,
+                        Collectors.mapping(Subscription::getEmail, Collectors.toList())
+                ));
 
-        // 3) for each slug, fetch top 3 plans and email each user
-        emailsBySlug.forEach((slug, emails) -> {
-            // get plans
-            List<GrantPlanDTO> plans = pipeline.generatePlansForProfessor(slug).stream()
-                .sorted(Comparator.comparingDouble(GrantPlanDTO::fitScore).reversed())
-                .limit(3)
-                .toList();
+        for (var entry : emailsBySlug.entrySet()) {
+            String slug = entry.getKey();
+            List<String> emails = entry.getValue();
+
+            List<GrantPlanDTO> top3 = pipeline.generatePlansForProfessor(slug).stream()
+                    .sorted(Comparator.comparingDouble(GrantPlanDTO::fitScore).reversed())
+                    .limit(3)
+                    .toList();
+
+            List<GrantPlanDTO> cachedTop3 = new ArrayList<>();
+            for (GrantPlanDTO grant : top3) {
+                String oppNo = grant.link(); // or use grant.oppNo()
+                ProfPlan cached = profPlanRepo.findByIdProfSlugAndIdOppNo(slug, oppNo);
+                List<PlanDTO> planList;
+                if (cached != null) {
+                    try {
+                        planList = objectMapper.readValue(cached.getPlanJson(), new TypeReference<List<PlanDTO>>() {});
+                    } catch (Exception e) {
+                        planList = grant.plans();
+                    }
+                } else {
+                    planList = grant.plans();
+                    try {
+                        String json = objectMapper.writeValueAsString(planList);
+                        profPlanRepo.save(new ProfPlan(slug, oppNo, json));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                cachedTop3.add(new GrantPlanDTO(
+                        grant.title(),
+                        grant.fitScore(),
+                        grant.link(),
+                        planList
+                ));
+            }
 
             String profName = slug.replace("-", " ");
-            emails.forEach(email -> {
+            for (String to : emails) {
                 try {
-                    sendEmail(email, profName, plans);
+                    sendEmail(to, profName, cachedTop3);
+                    System.out.println("Sent grant-match email to " + to);
                 } catch (MessagingException e) {
-                    // log and continue
-                    System.err.println("Failed to send to " + email + ": " + e.getMessage());
+                    System.err.println("Failed to send to " + to + ": " + e.getMessage());
                 }
-            });
-        });
+            }
+        }
     }
 
     private void sendEmail(String to, String profName, List<GrantPlanDTO> plans) throws MessagingException {
@@ -86,8 +121,15 @@ public class EmailService {
         sb.append("Here are your top grant matches:\n\n");
         for (GrantPlanDTO g : plans) {
             sb.append(g.title())
-              .append(" (Score: ").append(g.fitScore()).append(")\n")
-              .append(g.link()).append("\n\n");
+                    .append(" (Score: ").append(g.fitScore()).append(")\n")
+                    .append(g.link()).append("\n");
+            for (PlanDTO plan : g.plans()) {
+                sb.append("- ").append(plan.rationale()).append("\n");
+                for (String step : plan.steps()) {
+                    sb.append("    • ").append(step).append("\n");
+                }
+            }
+            sb.append("\n");
         }
         sb.append("Reply to this email with any questions.\n");
         return sb.toString();
@@ -96,17 +138,27 @@ public class EmailService {
     private String buildHtml(String prof, List<GrantPlanDTO> plans) {
         StringBuilder sb = new StringBuilder();
         sb.append("<html><body>")
-          .append("<h2>Hi ").append(prof).append(",</h2>")
-          .append("<p>Here are your top grant matches:</p>");
+                .append("<h2>Hi ").append(prof).append(",</h2>")
+                .append("<p>Here are your <strong>top grant matches</strong>:</p>");
         for (GrantPlanDTO g : plans) {
-            sb.append("<div style='margin-bottom:16px;'>")
-              .append("<h3><a href='").append(g.link())
-              .append("'>").append(g.title())
-              .append("</a> (Score: ").append(g.fitScore()).append(")</h3>")
-              .append("</div>");
+            sb.append("<div style='margin-bottom:18px;padding:10px;border:1px solid #eee;border-radius:8px;'>")
+                    .append("<h3 style='margin:0;'><a href='").append(g.link())
+                    .append("' target='_blank'>").append(g.title()).append("</a>")
+                    .append(" <span style='font-size:small;color:#888;'>(Score: ")
+                    .append(g.fitScore()).append(")</span></h3>");
+            for (PlanDTO plan : g.plans()) {
+                sb.append("<details><summary>")
+                        .append(plan.rationale())
+                        .append("</summary><ul>");
+                for (String step : plan.steps()) {
+                    sb.append("<li>").append(step).append("</li>");
+                }
+                sb.append("</ul></details>");
+            }
+            sb.append("</div>");
         }
-        sb.append("<p>Reply to this email with any questions.</p>")
-          .append("</body></html>");
+        sb.append("<p style='margin-top:24px;'>Reply to this email with any questions.</p>")
+                .append("</body></html>");
         return sb.toString();
     }
 }

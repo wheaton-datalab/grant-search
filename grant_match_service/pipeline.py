@@ -59,24 +59,27 @@ def build_profile(slug: str) -> str:
 
 
 # ─── 2) Semantic search ───────────────────────────────────────────────
-def semantic_search(profile: str, k=25):
+def semantic_search(profile: str, k=25, include_scores=False):
     idx = faiss.read_index(INDEX_PATH)
     with open(META_PATH, "rb") as f:
         recs = pickle.load(f)
     resp = openai.embeddings.create(input=[profile], model="text-embedding-3-large")
     qv = np.array([resp.data[0].embedding], dtype="float32")
     faiss.normalize_L2(qv)
-    _, I = idx.search(qv, k)
+    D, I = idx.search(qv, k)
     out = []
-    for i in I[0]:
+    for rank, i in enumerate(I[0]):
         r = recs[i]
-        out.append({
+        item = {
             "title": r["OPPORTUNITY TITLE"],
             "description": r["FUNDING DESCRIPTION"],
             "link":        r["LINK TO ADDITIONAL INFORMATION"],
             "oppNum":      r["OPPORTUNITY NUMBER"],
             "oppStatus":   r["OPPORTUNITY STATUS"]
-        })
+        }
+        if include_scores:
+            item["score"] = float(D[0][rank])  # cosine similarity
+        out.append(item)
     return out
 
 # ─── 3) Score opportunities ───────────────────────────────────────────
