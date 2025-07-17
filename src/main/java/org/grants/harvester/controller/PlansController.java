@@ -1,4 +1,4 @@
-package org.grants.harvester;
+package org.grants.harvester.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 import org.grants.harvester.dto.GrantPlanDTO;
+import org.grants.harvester.service.PipelineService;
 
 /**
  * Exposes two endpoints:

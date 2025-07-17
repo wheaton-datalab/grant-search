@@ -1,4 +1,4 @@
-package org.grants.harvester;
+package org.grants.harvester.service;
 
 import java.util.List;
 import org.grants.harvester.dto.GrantPlanDTO;
