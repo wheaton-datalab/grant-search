@@ -1,7 +1,8 @@
 package org.grants.harvester.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 import org.grants.harvester.entity.RawGrant;
 import org.grants.harvester.repository.RawGrantRepository;
 import org.grants.harvester.service.GrantIngestionService;
@@ -19,13 +20,13 @@ public class RawGrantController {
         this.ingestion = ingestion;
     }
 
-    /** List everything in the table */
+    /** List grants in pages */
     @GetMapping
-    public List<RawGrant> all() {
-        return repo.findAll();
+    public Page<RawGrant> all(Pageable pageable) {
+        return repo.findAll(pageable);
     }
 
-    /** Manually trigger the weekly ingestion logic */
+    /** Manually trigger ingestion */
     @PostMapping("/ingest")
     public void ingestNow() {
         ingestion.ingestWeekly();
