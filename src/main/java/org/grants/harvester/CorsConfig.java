@@ -14,6 +14,7 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",              // <— add this
             "http://localhost:5500",               // for dev
             "http://localhost:8080",               // for dev
             "https://grant-search.netlify.app"     // ✅ Netlify domain!

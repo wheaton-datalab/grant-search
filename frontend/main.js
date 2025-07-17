@@ -169,3 +169,12 @@ resultsContainer.appendChild(div);
     }
   });
 };
+
+document.getElementById("weekly-email").onchange = async (e)=>{
+  const slug = document.getElementById("keyword").value.trim().toLowerCase().replace(/\s+/g,"-");
+  await fetch("http://localhost:8080/api/subscriptions",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({slug, subscribe:e.target.checked})
+  });
+};
