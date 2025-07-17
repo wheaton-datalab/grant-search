@@ -1,48 +1,42 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional
+from fastapi.middleware.cors import CORSMiddleware
+from typing import List
 
-class Plan(BaseModel):
-    rationale: str
-    steps: List[str]
-
-class GrantPlan(BaseModel):
-    title: str
-    fitScore: float
-    link: str
-    opportunityStatus: Optional[str] = None
-    plans: List[Plan]
+from pipeline import build_profile, semantic_search, score_grants, generate_plans
+from pipeline import GrantPlan, Plan
 
 app = FastAPI()
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["http://localhost:3000"],
+  allow_methods=["GET","POST","OPTIONS"],
+  allow_headers=["*"],
+)
 
 @app.get("/match", response_model=List[GrantPlan])
-def match(slug: str):
-    if slug == "test-prof":
-        return [
-            GrantPlan(
-                title="Dynamics, Control and Systems Diagnostics",
-                fitScore=9.1,
-                link="https://example.com/dcsd",
-                opportunityStatus="Posted",
-                plans=[
-                    Plan(
-                        rationale="Leverage nonlinear dynamics expertise to improve diagnostics.",
-                        steps=[
-                            "Highlight bifurcation theory background.",
-                            "Integrate prior models of epidemics.",
-                            "Create joint project with control-systems team."
-                        ]
-                    ),
-                    Plan(
-                        rationale="Use supply-chain modelling work for real-world control tests.",
-                        steps=[
-                            "Showcase UAV cargo simulation.",
-                            "Prototype decision-support dashboard.",
-                            "Partner with humanitarian org for validation."
-                        ]
-                    )
-                ]
-            )
-        ]
-    else:
-        raise HTTPException(status_code=404, detail="Professor not found")
+async def match(slug: str):
+    try:
+        profile = build_profile(slug)
+    except ValueError:
+        raise HTTPException(404, "Professor not found")
+
+    # 1) search
+    cands   = semantic_search(profile, k=25)
+    # 2) score
+    scored  = score_grants(profile, cands)
+    # 3) sort + take top 5
+    top5    = sorted(scored, key=lambda g: g["fitScore"], reverse=True)[:5]
+    # 4) generate plans for top 3
+    plans   = [generate_plans(profile, g) for g in top5[:3]]
+
+    # 5) assemble output
+    out = []
+    for g, pl in zip(top5[:3], plans):
+        out.append(GrantPlan(
+            title=g["title"],
+            fitScore=g["fitScore"],
+            link=g["link"],
+            opportunityStatus=g["oppStatus"],
+            plans=pl
+        ))
+    return out

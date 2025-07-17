@@ -6,3 +6,10 @@ numpy
 faiss-cpu
 openai
 python-dotenv
+
+# scraping deps
+selenium
+beautifulsoup4
+requests
+pandas
+webdriver-manager
