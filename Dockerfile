@@ -13,7 +13,7 @@ RUN apt-get update && \
 COPY . .
 
 # Install Python requirements
-RUN pip install -r tools/requirements.txt
+RUN pip install -r requirements.txt
 
 # Build the Spring Boot app
 RUN mvn clean package -DskipTests
