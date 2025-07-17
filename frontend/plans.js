@@ -1,287 +1,236 @@
-/* plans.js – modern Grant Match frontend */
+// plans.js
 
-document.addEventListener("DOMContentLoaded", () => {
-    // -------------------------------
-    // Config
-    // -------------------------------
-    const API_BASE = "http://localhost:8080/api"; // Spring Boot gateway
-  
-    // Rotating suggestions for the hero search placeholder
-    const SUGGESTIONS = [
-      "Danilo Diedrichs",
-      "Amy Peeler",
-      "Andrew Abernethy",
-      "Jane Doe (demo)",
-      "Search faculty..."
-    ];
-    const SUGGESTION_INTERVAL_MS = 4000;
-  
-    // Page state
-    const state = {
-      slug: null,
-      page: 0,
-      size: 10,
-      totalPages: 0,
-    };
-  
-    // -------------------------------
-    // DOM refs
-    // -------------------------------
-    const form      = document.getElementById("searchForm");
-    const input     = document.getElementById("profNameInput");
-    const searchBtn = document.getElementById("searchBtn");
-    const titleEl   = document.getElementById("prof-title");
-    const resultsEl = document.getElementById("results");
-    const toastEl   = document.getElementById("toast");
-    const pagWrap   = document.getElementById("pagination");
-    const prevBtn   = document.getElementById("prevPage");
-    const nextBtn   = document.getElementById("nextPage");
-    const pageInfo  = document.getElementById("pageInfo");
-    const modalRoot = document.getElementById("modal-root");
-  
-    // -------------------------------
-    // Helpers
-    // -------------------------------
-    const slugify = (s) =>
-      s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  
-    function showToast(msg) {
-      toastEl.textContent = msg;
-      toastEl.classList.remove("hidden");
-      setTimeout(() => toastEl.classList.add("hidden"), 5000);
-    }
-    toastEl.addEventListener("click", () => toastEl.classList.add("hidden"));
-  
-    // Loading skeleton cards
-    function showSkeleton(count = 3) {
-      resultsEl.innerHTML = "";
-      for (let i = 0; i < count; i++) {
-        const div = document.createElement("div");
-        div.className =
-          "animate-pulse p-6 bg-white rounded-2xl shadow flex flex-col gap-3";
-        div.innerHTML = `
-          <div class="h-5 bg-gray-200 rounded w-3/4"></div>
-          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-          <div class="h-3 bg-gray-200 rounded w-full"></div>
-        `;
-        resultsEl.appendChild(div);
-      }
-    }
-  
-    function clearResults(msg = "") {
-      resultsEl.innerHTML = "";
-      if (msg) {
-        const div = document.createElement("div");
-        div.className = "text-center text-gray-400 py-8";
-        div.textContent = msg;
-        resultsEl.appendChild(div);
-      }
-    }
-  
-    // Score bar 0..1 -> %
-    function scoreBar(score) {
-      const pct = Math.max(0, Math.min(1, score)) * 100;
-      return `
-        <div class="w-full h-2 rounded bg-gray-200 overflow-hidden">
-          <div class="h-full bg-blue-500" style="width:${pct}%"></div>
-        </div>`;
-    }
-  
-    function statusBadge(status) {
-      const s = (status || "").toLowerCase();
-      if (s === "posted")      return `<span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700 font-semibold">Posted</span>`;
-      if (s === "forecasted")  return `<span class="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-700 font-semibold">Forecasted</span>`;
-      return `<span class="px-2 py-0.5 text-xs rounded-full bg-gray-200 text-gray-500 font-semibold">${status || "Unknown"}</span>`;
-    }
-  
-    // -------------------------------
-    // Render ranking cards
-    // -------------------------------
-    function renderRankings(data) {
-      resultsEl.innerHTML = "";
-      if (!data.content?.length) {
-        clearResults("No matching grants found.");
-        return;
-      }
-  
-      data.content.forEach((row) => {
-        const card = document.createElement("div");
-        card.className =
-          "p-6 bg-white rounded-2xl shadow hover:shadow-lg transition flex flex-col gap-4 fade-in";
-  
-        const scoreDisp = Number.isFinite(row.faissScore)
-          ? row.faissScore.toFixed(3)
-          : "—";
-  
-        card.innerHTML = `
-          <div class="flex flex-col sm:flex-row sm:items-start gap-4">
-            <div class="sm:w-20 flex sm:flex-col items-center sm:items-start gap-2">
-              <span class="font-mono text-blue-700 font-bold text-lg">${scoreDisp}</span>
-              ${scoreBar(row.faissScore)}
+const { useState, useEffect } = React;
+
+// ==================================
+// CONFIGURATION
+// ==================================
+const API_BASE = "http://localhost:8080/api";
+const RESULTS_PER_PAGE = 10;
+const PLACEHOLDER_SUGGESTIONS = [
+  "Search by faculty name...",
+  "e.g., Danilo Diedrichs",
+  "e.g., Amy Peeler",
+  "e.g., Andrew Abernethy",
+];
+
+
+// ==================================
+// HELPER & UI COMPONENTS
+// ==================================
+
+/** A single skeleton card for a clean loading state. No shimmer, just a clean pulse. */
+const SkeletonCard = () => (
+    <div className="bg-white p-6 rounded-2xl border border-slate-200 animate-pulse">
+        <div className="h-4 bg-slate-200 rounded w-4/5 mb-3"></div>
+        <div className="h-3 bg-slate-200 rounded w-1/3 mb-5"></div>
+        <div className="flex justify-between items-center">
+            <div className="flex gap-4">
+                <div className="h-6 w-20 bg-slate-200 rounded-full"></div>
+                <div className="h-6 w-24 bg-slate-200 rounded-full"></div>
             </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="text-xl font-semibold text-gray-800 break-words">
-                ${row.link
-                  ? `<a href="${row.link}" target="_blank" class="text-blue-600 hover:underline">${row.title}</a>`
-                  : row.title}
-              </h3>
-              <div class="mt-1">${statusBadge(row.status)}</div>
-            </div>
-            <div class="sm:self-center">
-              ${
-                row.hasPlan
-                  ? `<button
-                      class="plan-btn px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-700 text-white font-medium shadow transition"
-                      data-opp="${row.oppNo}"
-                      data-title="${encodeURIComponent(row.title)}"
-                    >
-                      View Plan
-                    </button>`
-                  : `<span class="text-gray-300 text-2xl cursor-not-allowed" title="No plan available yet">—</span>`
-              }
-            </div>
-          </div>
-          <div class="plan-slot mt-4 hidden"></div>
-        `;
-  
-        if (row.hasPlan) {
-          card.querySelector(".plan-btn").addEventListener("click", async (e) => {
-            const btn   = e.currentTarget;
-            const oppNo = btn.dataset.opp;
-            const slot  = card.querySelector(".plan-slot");
-            if (!slot.classList.contains("hidden")) {
-              // collapse
-              slot.classList.add("hidden");
-              slot.innerHTML = "";
-              btn.textContent = "View Plan";
-              return;
-            }
-            btn.disabled = true;
-            btn.textContent = "Loading…";
+            <div className="h-10 w-28 bg-slate-200 rounded-lg"></div>
+        </div>
+    </div>
+);
+
+/** A well-designed message for when no results are found. */
+const EmptyState = ({ query }) => (
+    <div className="text-center py-16 px-6 bg-white rounded-2xl border border-slate-200">
+        <h3 className="text-xl font-semibold text-slate-800">No Matches Found</h3>
+        <p className="text-slate-500 mt-2">
+            We couldn't find any grants for "{query}".
+        </p>
+    </div>
+);
+
+
+// ==================================
+// CORE FEATURE COMPONENTS
+// ==================================
+
+/** Displays the collapsable plan details with clear formatting. */
+const PlanDetails = ({ plans, isLoading, error }) => {
+    if (isLoading) {
+        return <div className="mt-4 pt-5 border-t border-slate-200/80"><div className="h-20 bg-slate-100 rounded-lg animate-pulse"></div></div>
+    }
+    if (error) {
+        return <div className="mt-4 pt-5 border-t border-slate-200/80 text-sm text-red-600">{error}</div>
+    }
+    if (!plans?.length) {
+        return <div className="mt-4 pt-5 border-t border-slate-200/80 text-sm text-slate-500">No plan details are available for this grant.</div>
+    }
+
+    return (
+        <div className="mt-4 pt-5 border-t border-slate-200/80 space-y-5">
+            {plans.map((plan, index) => (
+                <div key={index}>
+                    <h4 className="font-semibold text-slate-800">{plan.rationale}</h4>
+                    <ul className="mt-2 ml-4 list-disc text-slate-600 space-y-1.5 text-sm">
+                        {plan.steps.map((step, i) => <li key={i}>{step}</li>)}
+                    </ul>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+/** The main card component, redesigned for clarity and professionalism. */
+const GrantCard = ({ grant, profSlug }) => {
+    const [isPlanVisible, setIsPlanVisible] = useState(false);
+    const [planState, setPlanState] = useState({ data: null, isLoading: false, error: null });
+
+    const handleTogglePlan = async () => {
+        if (isPlanVisible) {
+            setIsPlanVisible(false);
+            return;
+        }
+
+        setIsPlanVisible(true);
+        if (!planState.data) { // Fetch only once
+            setPlanState({ data: null, isLoading: true, error: null });
             try {
-              const plansRes = await fetch(
-                `${API_BASE}/prof-plans/${state.slug}/${encodeURIComponent(oppNo)}`,
-                { mode: "cors" }
-              );
-              if (!plansRes.ok) throw new Error(await plansRes.text());
-              const plans = await plansRes.json();
-              slot.innerHTML = renderPlanDetails(plans);
-              slot.classList.remove("hidden");
-              btn.textContent = "Hide Plan";
+                const res = await fetch(`${API_BASE}/prof-plans/${profSlug}/${encodeURIComponent(grant.oppNo)}`);
+                if (!res.ok) throw new Error("Could not load plan details.");
+                const data = await res.json();
+                setPlanState({ data, isLoading: false, error: null });
             } catch (err) {
-              showToast("Could not load plan.");
-              btn.textContent = "View Plan";
-            } finally {
-              btn.disabled = false;
+                setPlanState({ data: null, isLoading: false, error: err.message });
             }
-          });
         }
-  
-        resultsEl.appendChild(card);
-      });
-    }
-  
-    function renderPlanDetails(plans) {
-      if (!plans?.length) {
-        return `<div class="text-sm text-gray-400">No plan details cached.</div>`;
-      }
-      return plans
-        .map(
-          (p) => `
-          <details open class="group mb-3">
-            <summary class="cursor-pointer select-none font-semibold text-gray-700 group-open:text-blue-700">
-              ${p.rationale}
-            </summary>
-            <ul class="list-disc list-inside mt-1 text-gray-600 space-y-1">
-              ${p.steps.map((s) => `<li>${s}</li>`).join("")}
-            </ul>
-          </details>`
-        )
-        .join("");
-    }
-  
-    // -------------------------------
-    // Pagination controls
-    // -------------------------------
-    function updatePagination(page, totalPages) {
-      state.page = page;
-      state.totalPages = totalPages;
-      if (totalPages <= 1) {
-        pagWrap.classList.add("hidden");
-        return;
-      }
-      pagWrap.classList.remove("hidden");
-      pageInfo.textContent = `Page ${page + 1} of ${totalPages}`;
-      prevBtn.disabled = page <= 0;
-      nextBtn.disabled = page >= totalPages - 1;
-    }
-  
-    prevBtn.addEventListener("click", () => {
-      if (state.page > 0) fetchRankings(state.slug, state.page - 1);
-    });
-    nextBtn.addEventListener("click", () => {
-      if (state.page < state.totalPages - 1) fetchRankings(state.slug, state.page + 1);
-    });
-  
-    // -------------------------------
-    // Fetch rankings (main network call)
-    // -------------------------------
-    async function fetchRankings(slug, page = 0) {
-      state.slug = slug;
-      showSkeleton(); // loading skeleton
-      try {
-        const res = await fetch(
-          `${API_BASE}/rankings/${slug}?page=${page}&size=${state.size}`,
-          { mode: "cors" }
-        );
-        if (!res.ok) {
-          throw new Error(`${res.status} ${res.statusText}`);
-        }
-        const data = await res.json();
-        renderRankings(data);
-        updatePagination(data.number, data.totalPages);
-      } catch (err) {
-        clearResults();
-        showToast("Error loading rankings: " + err.message);
-        updatePagination(0, 0);
-      }
-    }
-  
-    // -------------------------------
-    // Rotating placeholder suggestions
-    // -------------------------------
-    let suggIdx = 0;
-    function cyclePlaceholder() {
-      if (document.activeElement === input) return; // don't change while typing
-      if (input.value.trim() !== "") return;
-      input.placeholder = SUGGESTIONS[suggIdx];
-      suggIdx = (suggIdx + 1) % SUGGESTIONS.length;
-    }
-    cyclePlaceholder();
-    setInterval(cyclePlaceholder, SUGGESTION_INTERVAL_MS);
-  
-    // -------------------------------
-    // Form submit
-    // -------------------------------
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const name = input.value.trim();
-      if (!name) {
-        showToast("Please enter a professor name.");
-        return;
-      }
-      const slug = slugify(name);
-      titleEl.textContent = `Grant rankings for “${name}”`;
-      titleEl.classList.remove("hidden");
-      fetchRankings(slug, 0);
-    });
-  
-    // Enter manually triggers submit if user bypasses button focus
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
+    };
+
+    const statusMap = {
+        posted: { text: "Posted", class: "bg-green-100 text-green-800 ring-green-600/20" },
+        forecasted: { text: "Forecasted", class: "bg-yellow-100 text-yellow-800 ring-yellow-600/20" },
+    };
+    const statusInfo = statusMap[grant.status?.toLowerCase()] || { text: grant.status || 'Unknown', class: 'bg-slate-100 text-slate-800 ring-slate-600/20' };
+
+    return (
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 transition-all duration-300 hover:shadow-md hover:border-slate-300 animate-fadeIn">
+            <h3 className="text-lg font-bold text-slate-800">
+                <a href={grant.link} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
+                    {grant.title}
+                </a>
+            </h3>
+            <p className="text-sm text-slate-500 mt-1">Match Score: {grant.faissScore.toFixed(3)}</p>
+            
+            <div className="mt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <span className={`px-3 py-1 text-xs font-semibold rounded-full ring-1 ring-inset ${statusInfo.class}`}>
+                    {statusInfo.text}
+                </span>
+
+                {grant.hasPlan && (
+                    <button onClick={handleTogglePlan} className="w-full sm:w-auto px-5 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-sm transition-colors">
+                        {isPlanVisible ? 'Hide Plan' : 'View Application Plan'}
+                    </button>
+                )}
+            </div>
+
+            {isPlanVisible && <PlanDetails {...planState} />}
+        </div>
+    );
+};
+
+
+// ==================================
+// MAIN APPLICATION COMPONENT
+// ==================================
+function App() {
+    const [isLoading, setIsLoading] = useState(false);
+    const [results, setResults] = useState([]);
+    const [error, setError] = useState(null);
+    const [searchedProf, setSearchedProf] = useState(null);
+    const [profSlug, setProfSlug] = useState(null);
+    
+    // State for the controlled input
+    const [query, setQuery] = useState("");
+    const [placeholder, setPlaceholder] = useState(PLACEHOLDER_SUGGESTIONS[0]);
+
+    // Placeholder cycling effect
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setPlaceholder(p => {
+                const currentIndex = PLACEHOLDER_SUGGESTIONS.indexOf(p);
+                const nextIndex = (currentIndex + 1) % PLACEHOLDER_SUGGESTIONS.length;
+                return PLACEHOLDER_SUGGESTIONS[nextIndex];
+            });
+        }, 4000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleSearch = async (e) => {
         e.preventDefault();
-        form.requestSubmit();
-      }
-    });
-  });
-  
+        const profName = query.trim();
+        if (!profName) return;
+
+        setIsLoading(true);
+        setResults([]);
+        setError(null);
+        setSearchedProf(profName);
+
+        const slug = profName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        setProfSlug(slug);
+
+        try {
+            const url = `${API_BASE}/rankings/${slug}?page=0&size=${RESULTS_PER_PAGE}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`We couldn't find a professor named "${profName}". Please check the spelling.`);
+            }
+            const data = await response.json();
+            setResults(data.content);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="max-w-4xl mx-auto px-4 py-16 sm:py-24">
+            <header className="text-center mb-12">
+                <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 text-transparent bg-clip-text">
+                    Grant Match Finder
+                </h1>
+                <p className="mt-3 text-lg text-slate-500">Search a professor to see active grant matches.</p>
+            </header>
+
+            <form onSubmit={handleSearch} className="relative flex items-center gap-2 max-w-2xl mx-auto mb-12">
+                <input
+                    type="text"
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    placeholder={placeholder}
+                    className="flex-1 text-xl px-6 py-4 rounded-2xl border border-slate-300 shadow-sm focus:ring-4 focus:ring-blue-300 focus:border-blue-500 outline-none bg-white transition"
+                />
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="px-8 py-4 rounded-2xl text-lg font-semibold text-white shadow-lg bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:bg-slate-400 disabled:cursor-wait transition-all"
+                >
+                    {isLoading ? 'Searching...' : 'Search'}
+                </button>
+            </form>
+
+            <main className="space-y-4">
+                {isLoading && Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
+                
+                {!isLoading && error && <div className="text-center py-16 px-6 bg-red-50 text-red-700 rounded-2xl border border-red-200">{error}</div>}
+                
+                {!isLoading && !error && searchedProf && results.length === 0 && <EmptyState query={searchedProf} />}
+                
+                {!isLoading && !error && results.length > 0 && results.map(grant => (
+                    <GrantCard key={grant.oppNo} grant={grant} profSlug={profSlug} />
+                ))}
+            </main>
+        </div>
+    );
+}
+
+// ==================================
+// MOUNT THE REACT APPLICATION
+// ==================================
+const container = document.getElementById('grant-finder-app');
+const root = ReactDOM.createRoot(container);
+root.render(<App />);
