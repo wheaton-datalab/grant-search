@@ -41,7 +41,7 @@ public class SearchController {
 
             // Step 2: Define paths
             String pythonBinary = "/usr/bin/python3";  // absolute path to Python
-            String scriptPath = "/app/predict_awards_cli.py";  // absolute path to script
+            String scriptPath = "/app/tools/predict_awards_cli.py";  // absolute path to script
             String outputPath = "/app/ranked_output.json";
 
             // Step 3: Run the Python script
