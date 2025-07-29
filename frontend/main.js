@@ -1,5 +1,5 @@
 // Dynamic API URL depending on environment (localhost for dev, production URL otherwise)
-const API_URL = "http://localhost:8080";
+const API_URL = "https://grant-search.onrender.com";
 /*
   window.location.hostname === "localhost"
     ? "http://localhost:8080"

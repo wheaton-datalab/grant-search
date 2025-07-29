@@ -22,7 +22,7 @@ public class GrantSearcher {
     private static final String FETCH_API_URL = "https://api.grants.gov/v1/api/fetchOpportunity";
 
     /**
-     * NEW: Wrapper for SearchRequest (user input) that internally converts to SearchConfig (API input).
+     * Wrapper for SearchRequest (user input) that internally converts to SearchConfig (API input).
      */
     public static List<Grant> run(SearchRequest request) throws Exception {
         // Create a config object using public field access
@@ -32,7 +32,6 @@ public class GrantSearcher {
         config.fundingInstruments = request.getFundingInstruments();
         config.rows = request.getRows();
 
-        // In the future, we can use department, institutionType, userState from `request` here
         return run(config);
     }
 

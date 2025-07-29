@@ -2,6 +2,13 @@ package org.grants.harvester;
 
 import java.util.List;
 
+/**
+ * Data transfer object representing a search request from the client.
+ * 
+ * This class encapsulates all user-supplied search parameters for grant opportunities,
+ * including keyword, opportunity statuses, funding instruments, and additional metadata
+ * such as department, institution type, and user state.
+ */
 public class SearchRequest {
     private String keyword;
     private List<String> oppStatuses;
@@ -11,7 +18,6 @@ public class SearchRequest {
     private String department;
     private String institutionType;
     private String userState;
-
 
     // Getters and setters
     public String getKeyword() { return keyword; }
