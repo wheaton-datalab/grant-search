@@ -2,6 +2,13 @@
 
 A full-stack application to crawl, search, rank, and enrich grant opportunities from Grants.gov, providing tailored results for users (such as professors) based on their institution, department, and location. Machine learning models are used to match users with appropriate grants.
 
+## Important links
+
+GitHub: https://github.com/wheaton-datalab/grant-search
+search2 API: https://grants.gov/api/common/search2
+fetchOppurtunity API: https://www.grants.gov/api/common/fetchopportunity
+Data to train model (Request if unavailable): https://drive.google.com/file/d/1dNmCEpkL-2fz7BypzC6544QONAx2-0Xm/view?usp=sharing
+
 ## Usage
 
 1. Enter your search criteria (keywords, statuses, agencies, etc.).
